@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Broadway Story</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="broadway_story.css" />
+</head>
+<body>
+  <header class="hero">
+    <div class="hero-media">
+      <video class="hero-video" autoplay muted loop playsinline>
+        <source src="broadway-hero.mp4" type="video/mp4">
+        <source src="broadway-night.mp4" type="video/mp4">
+      </video>
+    </div>
+    <div class="hero-overlay"></div>
+    <div class="hero-inner">
+      <p class="hero-kicker">Lo que necesitás saber sobre Broadway</p>
+      <h1>Broadway</h1>
+      <p class="deck">
+        Si vas a Nueva York, Broadway no es solo una salida más: es parte del ritual. Esta guía usa cuatro musicales históricos para responder una pregunta simple: qué convierte a un show en una leyenda.
+      </p>
+    </div>
+  </header>
+
+  <main class="scrolly-story">
+    <section class="scrolly-stage">
+      <div class="sticky-frame">
+        <div class="chart-headings">
+          <div class="chart-heading active" data-heading="1">
+            <p class="chart-kicker">SECCIÓN 1</p>
+            <h2>Los musicales que lograron resistir</h2>
+          </div>
+          <div class="chart-heading" data-heading="2">
+            <p class="chart-kicker">SECCIÓN 2</p>
+            <h2>La obra que dominó Broadway durante décadas</h2>
+          </div>
+          <div class="chart-heading" data-heading="3">
+            <p class="chart-kicker">SECCIÓN 3</p>
+            <h2>Cuando Broadway se volvió un fenómeno global</h2>
+          </div>
+          <div class="chart-heading" data-heading="4">
+            <p class="chart-kicker">SECCIÓN 4</p>
+            <h2>No siempre gana el que más dura</h2>
+          </div>
+        </div>
+
+        <div class="chart-stack">
+          <article class="chart-panel active" data-panel="1">
+            <div class="chart-frame">
+              <div class="flourish-embed flourish-chart" data-src="visualisation/29465581"><script src="https://public.flourish.studio/resources/embed.js"></script><noscript><img src="https://public.flourish.studio/visualisation/29465581/thumbnail" width="100%" alt="chart visualization" /></noscript></div>
+            </div>
+          </article>
+          <article class="chart-panel" data-panel="2">
+            <div class="chart-frame">
+              <div class="flourish-embed flourish-chart" data-src="visualisation/29474557"><script src="https://public.flourish.studio/resources/embed.js"></script><noscript><img src="https://public.flourish.studio/visualisation/29474557/thumbnail" width="100%" alt="chart visualization" /></noscript></div>
+            </div>
+          </article>
+          <article class="chart-panel" data-panel="3">
+            <div class="chart-frame">
+              <div class="flourish-embed flourish-chart" data-src="visualisation/29474624"><script src="https://public.flourish.studio/resources/embed.js"></script><noscript><img src="https://public.flourish.studio/visualisation/29474624/thumbnail" width="100%" alt="chart visualization" /></noscript></div>
+            </div>
+          </article>
+          <article class="chart-panel" data-panel="4">
+            <div class="chart-frame">
+              <div class="flourish-embed flourish-scatter" data-src="visualisation/29474665"><script src="https://public.flourish.studio/resources/embed.js"></script><noscript><img src="https://public.flourish.studio/visualisation/29474665/thumbnail" width="100%" alt="scatter visualization" /></noscript></div>
+            </div>
+          </article>
+        </div>
+
+        <aside class="floating-card tone-aqua" data-card="1">
+          <span class="fact-label">ANTES DE IR</span>
+          <h2>Broadway es una industria de supervivencia</h2>
+          <p>No alcanza con estrenarse bien. En Broadway, durar es casi tan difícil como gustar.</p>
+          <p><strong>The Phantom of the Opera</strong> llegó a 13.981 funciones: una medida concreta de permanencia histórica.</p>
+        </aside>
+
+        <aside class="floating-card tone-navy" data-card="2">
+          <span class="fact-label">DATO CLAVE</span>
+          <h2>El rey de la longevidad</h2>
+          <p>Si querés entender la dimensión de Broadway, mirá este número: <strong>35 años</strong>.</p>
+          <p>Eso fue lo que permaneció en cartel <strong>The Phantom of the Opera</strong>, de 1988 a 2023.</p>
+        </aside>
+
+        <aside class="floating-card tone-green" data-card="3">
+          <span class="fact-label">CAMBIO DE ESCALA</span>
+          <h2>Disney cambió Broadway</h2>
+          <p><strong>The Lion King</strong> convirtió el musical familiar en un fenómeno global, turístico y duradero.</p>
+          <p>Con 29 años en cartel, Disney dejó de ser invitado y pasó a ser parte central del negocio.</p>
+        </aside>
+
+        <aside class="floating-card tone-dark" data-card="4">
+          <span class="fact-label">NO TODO ES DURAR</span>
+          <h2>Premios vs popularidad</h2>
+          <p><strong>Hamilton</strong> no fue el más longevo, pero sí uno de los musicales que más redefinió la conversación sobre Broadway.</p>
+          <p>Sus <strong>11 premios Tony</strong> lo convirtieron en un fenómeno cultural, no solo teatral.</p>
+        </aside>
+      </div>
+
+      <div class="scroll-steps">
+        <div class="trigger-step active" data-step="1" data-panel="1" data-card="0"></div>
+        <div class="trigger-step" data-step="2" data-panel="1" data-card="1"></div>
+        <div class="trigger-step" data-step="3" data-panel="2" data-card="0"></div>
+        <div class="trigger-step" data-step="4" data-panel="2" data-card="2"></div>
+        <div class="trigger-step" data-step="5" data-panel="3" data-card="0"></div>
+        <div class="trigger-step" data-step="6" data-panel="3" data-card="3"></div>
+        <div class="trigger-step" data-step="7" data-panel="4" data-card="0"></div>
+        <div class="trigger-step" data-step="8" data-panel="4" data-card="4"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    const steps = [...document.querySelectorAll('.trigger-step')];
+    const panels = document.querySelectorAll('.chart-panel');
+    const cards = document.querySelectorAll('.floating-card');
+    const headings = document.querySelectorAll('.chart-heading');
+    let activeStep = steps[0] ?? null;
+
+    const activateState = (panelNumber, cardNumber) => {
+      panels.forEach(panel => panel.classList.toggle('active', panel.dataset.panel === panelNumber));
+      headings.forEach(heading => heading.classList.toggle('active', heading.dataset.heading === panelNumber));
+      cards.forEach(card => {
+        card.classList.remove('active');
+        card.style.setProperty('--card-shift', '18vh');
+        card.style.setProperty('--card-opacity', '0');
+        if (card.dataset.card === cardNumber && cardNumber !== '0') {
+          card.classList.add('active');
+        }
+      });
+    };
+
+    const updateCardPosition = () => {
+      if (!activeStep) return;
+
+      const cardNumber = activeStep.dataset.card;
+      const activeCard = cardNumber !== '0'
+        ? document.querySelector(`.floating-card[data-card="${cardNumber}"]`)
+        : null;
+
+      cards.forEach(card => {
+        if (card !== activeCard) {
+          card.style.setProperty('--card-shift', '18vh');
+          card.style.setProperty('--card-opacity', '0');
+        }
+      });
+
+      if (!activeCard) return;
+
+      const rect = activeStep.getBoundingClientRect();
+      const viewportHeight = window.innerHeight;
+      const rawProgress = (viewportHeight - rect.top) / (viewportHeight + rect.height);
+      const progress = Math.max(0, Math.min(1, rawProgress));
+      const shift = 24 - (progress * 150);
+
+      let opacity = 1;
+      if (progress < 0.16) opacity = progress / 0.16;
+      else if (progress > 0.58) opacity = (0.82 - progress) / 0.24;
+      opacity = Math.max(0, Math.min(1, opacity));
+
+      activeCard.style.setProperty('--card-shift', `${shift.toFixed(2)}vh`);
+      activeCard.style.setProperty('--card-opacity', opacity.toFixed(3));
+    };
+
+    const refreshActiveStep = () => {
+      const viewportCenter = window.innerHeight / 2;
+      let nextStep = steps[0] ?? null;
+      let smallestDistance = Infinity;
+
+      steps.forEach(step => {
+        const rect = step.getBoundingClientRect();
+        const stepCenter = rect.top + (rect.height / 2);
+        const distance = Math.abs(stepCenter - viewportCenter);
+        if (distance < smallestDistance) {
+          smallestDistance = distance;
+          nextStep = step;
+        }
+      });
+
+      if (!nextStep) return;
+
+      if (activeStep !== nextStep) {
+        activeStep = nextStep;
+        activateState(nextStep.dataset.panel, nextStep.dataset.card);
+        steps.forEach(step => step.classList.toggle('active', step === nextStep));
+      }
+
+      updateCardPosition();
+    };
+
+    const onScroll = () => requestAnimationFrame(refreshActiveStep);
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll);
+    activateState(activeStep.dataset.panel, activeStep.dataset.card);
+    refreshActiveStep();
+
+  </script>
+</body>
+</html>
