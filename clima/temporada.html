@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Clima en New York</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --cream:#f3efe5;
+  --ink:#151513;
+  --muted:#918b7f;
+  --green:#3d7a6e;
+  --green2:#2d6058;
+  --gold:#c7a55a;
+  --sand:#e8dfc8;
+  --sand2:#d4c9ae;
+  --line:rgba(21,21,19,.1);
+}
+
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{background:var(--cream);color:var(--ink);font-family:'DM Sans',sans-serif;overflow-x:hidden;}
+
+body::after{
+  content:'';position:fixed;inset:0;z-index:999;pointer-events:none;opacity:.025;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ── INTRO ── */
+.intro{
+  min-height:80vh;display:flex;align-items:center;
+  justify-content:center;text-align:center;
+  padding:60px 24px;border-bottom:1px solid var(--line);
+}
+.intro-eyebrow{
+  font-size:.6rem;font-weight:600;letter-spacing:.34em;text-transform:uppercase;
+  color:var(--green);margin-bottom:18px;
+  display:flex;align-items:center;justify-content:center;gap:10px;
+}
+.intro-eyebrow span{width:18px;height:1px;background:var(--green);opacity:.5;display:inline-block;}
+.intro h1{
+  font-family:'Playfair Display',serif;
+  font-size:clamp(2.8rem,7vw,5.5rem);
+  font-weight:900;line-height:.9;letter-spacing:-.03em;
+  color:var(--ink);margin-bottom:18px;
+}
+.intro h1 em{color:var(--green);font-style:italic;font-weight:400;}
+.intro p{font-size:1.05rem;font-weight:300;color:var(--muted);line-height:1.7;}
+
+/* ── SCROLLY ── */
+.scrolly{
+  display:grid;grid-template-columns:62% 38%;
+  gap:40px;padding:70px clamp(28px,5vw,60px);
+}
+
+/* ── CHART CARD ── */
+.chart-sticky{
+  position:sticky;top:36px;height:84vh;display:flex;align-items:center;
+}
+.chart-card{
+  width:100%;
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:24px;padding:32px;
+  box-shadow:0 18px 55px rgba(21,21,19,.08);
+}
+.kicker{
+  font-size:.58rem;font-weight:700;letter-spacing:.28em;text-transform:uppercase;
+  color:var(--green);margin-bottom:10px;
+}
+.chart-card h2{
+  font-family:'Playfair Display',serif;
+  font-size:clamp(1.5rem,2.8vw,2rem);
+  font-weight:700;line-height:1.05;color:var(--ink);margin-bottom:8px;
+}
+#chartSubtitle{
+  font-size:.82rem;font-weight:300;color:var(--muted);
+  margin-bottom:22px;line-height:1.6;min-height:2.2em;
+  transition:opacity .28s;
+}
+.chart-wrap{height:360px;}
+
+.tags{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px;}
+.tag{
+  padding:6px 14px;border-radius:20px;
+  font-size:.65rem;font-weight:500;
+}
+.tag.cold{background:#dceafa;color:#245b9b;border:1px solid rgba(36,91,155,.15);}
+.tag.good{background:#d8f0e8;color:#1e6048;border:1px solid rgba(30,96,72,.15);}
+.tag.hot{background:#fde8d8;color:#924020;border:1px solid rgba(146,64,32,.15);}
+
+/* ── STEPS ── */
+.steps{
+  display:flex;flex-direction:column;
+  gap:52vh;padding-top:22vh;padding-bottom:44vh;
+}
+.step{
+  background:#fff;border:1px solid var(--line);
+  border-radius:22px;overflow:hidden;
+  opacity:.3;transform:translateY(14px);
+  transition:.35s ease;
+  box-shadow:0 8px 28px rgba(21,21,19,.07);
+}
+.step.active{
+  opacity:1;transform:translateY(0);
+  border-color:rgba(61,122,110,.22);
+  box-shadow:0 14px 44px rgba(21,21,19,.1);
+}
+.step-photo{
+  width:100%;height:200px;object-fit:cover;display:block;
+  filter:saturate(.9) contrast(1.02);transition:.45s ease;
+}
+.step.active .step-photo{filter:saturate(1) contrast(1.04);transform:scale(1.012);}
+.step-body{padding:22px 26px 26px;}
+.step-label{
+  display:inline-block;margin-bottom:10px;
+  padding:5px 12px;border-radius:14px;
+  background:rgba(61,122,110,.08);color:var(--green2);
+  font-size:.58rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+  border:1px solid rgba(61,122,110,.15);
+}
+.step h3{
+  font-family:'Playfair Display',serif;
+  font-size:clamp(1.6rem,3vw,2.1rem);
+  font-weight:700;color:var(--ink);margin-bottom:8px;line-height:1;
+}
+.step p{font-size:.88rem;font-weight:300;line-height:1.72;color:var(--muted);}
+
+/* season borders */
+.step[data-season="invierno"].active{border-color:rgba(91,143,214,.3);}
+.step[data-season="verano"].active{border-color:rgba(217,108,63,.28);}
+.step[data-season="primavera"].active,
+.step[data-season="otono"].active,
+.step[data-season="final"].active{border-color:rgba(61,122,110,.25);}
+
+/* ── RESPONSIVE ── */
+@media(max-width:860px){
+  .scrolly{display:block;padding:24px 18px;}
+  .chart-sticky{position:relative;top:0;height:auto;margin-bottom:28px;}
+  .chart-card{border-radius:18px;padding:20px;}
+  .chart-wrap{height:280px;}
+  .steps{gap:36vh;padding-top:18vh;padding-bottom:32vh;}
+  .step-photo{height:165px;}
+}
+</style>
+</head>
+<body>
+
+<section class="scrolly">
+  <div class="chart-sticky">
+    <div class="chart-card">
+      <div class="kicker">Temperatura promedio mensual</div>
+      <h2>El clima de New York</h2>
+      <p id="chartSubtitle">Hacé scroll para descubrir los mejores meses para viajar.</p>
+      <div class="chart-wrap">
+        <canvas id="climaChart"></canvas>
+      </div>
+      <div class="tags">
+        <span class="tag cold"> Invierno frío</span>
+        <span class="tag good"> Ideal: abr · may · sep · oct</span>
+        <span class="tag hot">Verano caluroso</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="steps">
+
+    <article class="step active" data-season="general">
+      <img class="step-photo" src="luca-bravo-TaCk3NspYe0-unsplash (1).jpg" alt="Skyline de New York"/>
+      <div class="step-body">
+        <span class="step-label">Guía por temporada</span>
+        <h3>Una ciudad, cuatro climas</h3>
+        <p>New York cambia radicalmente durante el año: de inviernos bajo cero a veranos húmedos y calurosos.</p>
+      </div>
+    </article>
+
+    <article class="step" data-season="invierno">
+      <img class="step-photo" src="caitlyn-wilson-af8vmZPyFq8-unsplash.jpg" alt="New York en invierno"/>
+      <div class="step-body">
+        <span class="step-label">Diciembre · Enero · Febrero</span>
+        <h3>Invierno</h3>
+        <p>Enero y febrero son los meses más fríos. Posibles nevadas, menos turistas y mejores precios.</p>
+      </div>
+    </article>
+
+    <article class="step" data-season="primavera">
+      <img class="step-photo" src="Spring in New Yourk (1).jpeg" alt="Primavera en Central Park"/>
+      <div class="step-body">
+        <span class="step-label">Marzo · Abril · Mayo</span>
+        <h3>Primavera</h3>
+        <p>Abril y mayo son ideales: clima templado entre 12°C y 18°C. Alta actividad cultural.</p>
+      </div>
+    </article>
+
+    <article class="step" data-season="verano">
+      <img class="step-photo" src="Washington Square Park.jpeg" alt="New York en verano"/>
+      <div class="step-body">
+        <span class="step-label">Junio · Julio · Agosto</span>
+        <h3>Verano</h3>
+        <p>Julio y agosto superan los 25°C con alta humedad. Mucho turismo pero excelente vida al aire libre.</p>
+      </div>
+    </article>
+
+    <article class="step" data-season="otono">
+      <img class="step-photo" src="Fall Scenery.jpeg" alt="Otoño en New York"/>
+      <div class="step-body">
+        <span class="step-label"> Septiembre · Octubre · Noviembre </span>
+        <h3>Otoño</h3>
+        <p>Septiembre y octubre combinan temperaturas perfectas y menos turismo.</p>
+      </div>
+    </article>
+
+    <article class="step" data-season="final">
+      <img class="step-photo" src="https://images.unsplash.com/photo-1522083165195-3424ed129620?auto=format&fit=crop&w=900&q=80" alt="Calles de New York"/>
+      <div class="step-body">
+       
+        <h3>Los mejores meses</h3>
+        <p>Abril, mayo, septiembre y octubre concentran el mejor clima, precios más accesibles y la ciudad en su punto.</p>
+      </div>
+    </article>
+
+  </div>
+</section>
+
+<script>
+const meses = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
+const temps  = [1,2,6,12,17,22,25,24,21,15,9,4];
+
+const recomendaciones = [
+  "Más frío del año. Menos turistas y mejores precios.",
+  "Posibles nevadas. Ciudad más tranquila.",
+  "Comienza la primavera. Todavía fresco para caminar.",
+  "Recomendado. Clima templado y agradable.",
+  "Uno de los mejores meses para visitar.",
+  "Buen clima, aunque empieza el calor.",
+  "Mes más caluroso. Mucho turismo.",
+  "Calor y humedad. Alta afluencia.",
+  "Temperatura ideal para recorrer la ciudad.",
+  "Otoño, colores únicos y clima perfecto.",
+  "Menos turistas y temperaturas frescas.",
+  "Navidad: ambiente festivo y mucha actividad."
+];
+
+const subtitles = {
+  general:  "Hacé scroll para descubrir los mejores meses para viajar.",
+  invierno: "Diciembre a febrero: frío intenso, posibles nevadas y mejor precio.",
+  primavera:"Abril y mayo: clima templado y parques en su mejor momento.",
+  verano:   "Julio y agosto: los meses más calurosos y turísticos.",
+  otono:    "Septiembre y octubre: los más recomendados para visitar NYC.",
+  final:    "Los mejores momentos: abril, mayo, septiembre y octubre."
+};
+
+const seasonPoints = {
+  general:  [], invierno:[0,1,11],
+  primavera:[2,3,4], verano:[5,6,7],
+  otono:[8,9,10],    final:[3,4,8,9]
+};
+
+/* ── Paleta crema coherente ── */
+const BASE_FILL   = "#f3efe5";   /* crema — igual al body */
+const BASE_STROKE = "#b8a98a";   /* tierra medio */
+const C_INV  = "#5b8fd6";        /* azul invierno */
+const C_PRI  = "#3d7a6e";        /* verde primavera/otoño */
+const C_VER  = "#d96c3f";        /* naranja verano */
+const C_FIN  = "#3d7a6e";        /* gold final */
+
+function sCol(s){
+  if(s==="invierno") return C_INV;
+  if(s==="verano")   return C_VER;
+  if(s==="final")    return C_FIN;
+  return C_PRI;
+}
+const pFill  = s => { const a=seasonPoints[s]||[],c=sCol(s); return temps.map((_,i)=>a.includes(i)?c:BASE_FILL); };
+const pStroke= s => { const a=seasonPoints[s]||[],c=sCol(s); return temps.map((_,i)=>a.includes(i)?c:BASE_STROKE); };
+const pRadius= s => { const a=seasonPoints[s]||[]; return temps.map((_,i)=>a.includes(i)?10:5); };
+const pWidth = s => { const a=seasonPoints[s]||[]; return temps.map((_,i)=>a.includes(i)?2.5:1.5); };
+
+const chart = new Chart(document.getElementById("climaChart"),{
+  type:"line",
+  data:{
+    labels:meses,
+    datasets:[{
+      data:temps,
+      borderColor:"#3d7a6e",
+      backgroundColor:"rgba(61,122,110,.08)",
+      fill:true,tension:.42,borderWidth:2.5,
+      pointBackgroundColor:pFill("general"),
+      pointBorderColor:pStroke("general"),
+      pointBorderWidth:pWidth("general"),
+      pointRadius:pRadius("general"),
+      pointHoverRadius:12
+    }]
+  },
+  options:{
+    responsive:true,maintainAspectRatio:false,
+    plugins:{
+      legend:{display:false},
+      tooltip:{
+        /* ── tooltip en paleta crema ── */
+        backgroundColor:"#fff",
+        borderColor:"rgba(61,122,110,.25)",
+        borderWidth:1,
+        padding:14,
+        cornerRadius:12,
+        titleColor:"#151513",
+        bodyColor:"#918b7f",
+        displayColors: true,
+        usePointStyle: true,
+        titleFont:{size:14,weight:"600",family:"'DM Sans',sans-serif"},
+        bodyFont:{size:12,family:"'DM Sans',sans-serif"},
+        callbacks:{
+          title:  items => meses[items[0].dataIndex],
+          label:  item  => item.parsed.y + " °C",
+          afterLabel: item => recomendaciones[item.dataIndex]
+        }
+      }
+    },
+    scales:{
+      y:{
+        suggestedMin:0,suggestedMax:30,
+        ticks:{callback:v=>v+"°C",font:{size:12,family:"'DM Sans',sans-serif"},color:"#918b7f"},
+        grid:{color:"rgba(21,21,19,.06)"},border:{color:"transparent"}
+      },
+      x:{
+        ticks:{font:{size:12,family:"'DM Sans',sans-serif"},color:"#918b7f"},
+        grid:{color:"rgba(21,21,19,.04)"},border:{color:"transparent"}
+      }
+    }
+  }
+});
+
+let current = "general";
+const steps    = document.querySelectorAll(".step");
+const subtitle = document.getElementById("chartSubtitle");
+
+function updateSeason(s){
+  if(s===current) return;
+  current = s;
+  steps.forEach(el=>el.classList.remove("active"));
+  document.querySelector(`[data-season="${s}"]`)?.classList.add("active");
+  chart.data.datasets[0].pointBackgroundColor = pFill(s);
+  chart.data.datasets[0].pointBorderColor     = pStroke(s);
+  chart.data.datasets[0].pointBorderWidth     = pWidth(s);
+  chart.data.datasets[0].pointRadius          = pRadius(s);
+  subtitle.style.opacity="0";
+  setTimeout(()=>{ subtitle.textContent=subtitles[s]; subtitle.style.opacity="1"; },150);
+  chart.update();
+}
+
+const h = ()=>Math.round(window.innerHeight*.4);
+let obs = new IntersectionObserver(
+  entries=>entries.forEach(e=>{ if(e.isIntersecting) updateSeason(e.target.dataset.season); }),
+  {rootMargin:`-${h()}px 0px -${h()}px 0px`,threshold:0}
+);
+steps.forEach(s=>obs.observe(s));
+window.addEventListener("resize",()=>{
+  obs.disconnect();
+  obs = new IntersectionObserver(
+    entries=>entries.forEach(e=>{ if(e.isIntersecting) updateSeason(e.target.dataset.season); }),
+    {rootMargin:`-${h()}px 0px -${h()}px 0px`,threshold:0}
+  );
+  steps.forEach(s=>obs.observe(s));
+});
+</script>
+</body>
+</html>

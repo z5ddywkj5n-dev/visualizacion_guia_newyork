@@ -1,0 +1,1334 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Airbnb NYC — Precios por barrio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:         #f5f1ea;
+  --surface:    #edeae2;
+  --surface2:   #e4e0d6;
+  --ink:        #111;
+  --muted:      #444;
+  --accent:     #3ED6D0;
+  --accent-dim: rgba(62,214,208,0.12);
+  --accent-dark:#138b88;
+  --chip-off:   #e4e0d6;
+  --border:     rgba(0,0,0,0.08);
+  --tooltip-bg: rgba(12,18,28,0.96);
+
+  --manhattan: #ee352e;
+  --brooklyn:  #2850ad;
+  --queens:    #00933c;
+  --bronx:     #ff6319;
+  --staten:    #6d2f8e;
+
+  --ease-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-out:  cubic-bezier(0.25, 1, 0.5, 1);
+
+  font-size: 16px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'Inter', system-ui, sans-serif;
+  min-height: 100vh;
+}
+
+/* Utilities */
+.visually-hidden {
+  position: absolute; width: 1px; height: 1px;
+  overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap;
+}
+
+/* ── VIZ SECTION ── */
+#airbnb-viz {
+  min-height: auto;
+  padding: clamp(2rem, 5vw, 5rem) clamp(1.5rem, 5vw, 4rem);
+  display: flex;
+  flex-direction: column;
+  gap: clamp(1rem, 2.5vw, 1.8rem);
+  max-width: none;
+  width: 100%;
+  margin: 0;
+}
+
+/* Header */
+.viz-header { display: flex; flex-direction: column; gap: 1.25rem; }
+
+.viz-eyebrow {
+  font-family: 'Inter', sans-serif;
+  font-size: clamp(0.7rem, 1.5vw, 0.8rem);
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.viz-title {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: clamp(2.5rem, 7vw, 5.5rem);
+  line-height: 0.95;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  text-wrap: balance;
+}
+
+/* Toggle */
+.viz-toggle {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.toggle-btn {
+  padding: 0.45rem 1.25rem;
+  border: 1.5px solid rgba(0,0,0,0.15);
+  background: var(--chip-off);
+  color: #444;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  border-radius: 100px;
+  transition: border-color 200ms var(--ease-out),
+              color 200ms var(--ease-out),
+              background 200ms var(--ease-out);
+}
+
+.toggle-btn.active {
+  border-color: var(--accent);
+  color: #111;
+  background: var(--accent);
+}
+
+.toggle-btn:hover:not(.active) {
+  border-color: var(--accent);
+  color: #111;
+}
+
+.toggle-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+/* Slider */
+.viz-slider-wrap { display: flex; flex-direction: column; gap: 1rem; }
+
+.viz-price {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+}
+
+.price-value {
+  font-family: 'Inter', sans-serif;
+  font-size: clamp(4rem, 12vw, 9rem);
+  font-weight: 900;
+  line-height: 1;
+  color: var(--accent);
+  letter-spacing: -0.02em;
+}
+
+.price-unit {
+  font-family: 'Inter', sans-serif;
+  font-size: clamp(0.85rem, 2vw, 1rem);
+  color: var(--muted);
+  font-weight: 400;
+  align-self: flex-end;
+  padding-bottom: 0.3rem;
+}
+
+.slider-track-wrap { display: flex; flex-direction: column; gap: 0.35rem; }
+
+.viz-range {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 3px;
+  background: #1a1a1a;
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+}
+
+.viz-range:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
+
+.viz-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 3px rgba(62,214,208,0.25);
+  transition: box-shadow 150ms var(--ease-out),
+              transform 150ms var(--ease-out);
+  cursor: grab;
+}
+
+.viz-range::-webkit-slider-thumb:active {
+  cursor: grabbing;
+  transform: scale(1.15);
+}
+
+.viz-range::-moz-range-thumb {
+  width: 20px; height: 20px;
+  border: none;
+  border-radius: 50%;
+  background: var(--accent);
+  cursor: grab;
+}
+
+.slider-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.95rem;
+  color: var(--ink);
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+}
+
+/* Contador */
+.viz-counter {
+  font-family: 'Inter', sans-serif;
+  font-size: clamp(0.85rem, 2vw, 1rem);
+  color: var(--muted);
+  font-weight: 400;
+}
+
+.count-number {
+  font-size: clamp(1.1rem, 2.5vw, 1.3rem);
+  font-weight: 700;
+  color: var(--ink);
+}
+
+/* Chips */
+.viz-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.chip {
+  padding: 0.3rem 0.9rem;
+  border-radius: 100px;
+  border: 1.5px solid transparent;
+  background: var(--chip-off);
+  color: #666;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 400;
+  cursor: default;
+  transition: background 200ms var(--ease-out),
+              color 200ms var(--ease-out),
+              border-color 200ms var(--ease-out),
+              opacity 200ms var(--ease-out);
+  /* entrada stagger — starts invisible */
+  opacity: 0;
+  transform: translateY(6px);
+}
+
+.chip.lit {
+  color: #fff;
+  cursor: pointer;
+  background: var(--accent);
+}
+
+.chip.lit:hover {
+  filter: brightness(1.1);
+}
+
+/* Source note */
+.viz-source {
+  font-size: 0.68rem;
+  color: #777;
+  font-family: 'Inter', sans-serif;
+  font-weight: 400;
+  border-top: 1px solid var(--border);
+  padding-top: 0.75rem;
+}
+
+/* ── TOOLTIP ── */
+#viz-tooltip {
+  position: fixed;
+  z-index: 100;
+  pointer-events: none;
+  background: var(--tooltip-bg);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 6px;
+  padding: 0.6rem 0.85rem;
+  max-width: 200px;
+  opacity: 0;
+  transition: opacity 150ms var(--ease-out);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  font-family: 'Inter', sans-serif;
+}
+
+#viz-tooltip.visible { opacity: 1; }
+
+.tt-name {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 1.05rem;
+  line-height: 1.2;
+  color: #fff;
+}
+
+.tt-borough {
+  font-size: 0.68rem;
+  color: rgba(255,255,255,0.55);
+  font-family: 'Inter', sans-serif;
+  margin-top: 0.15rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.tt-price {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--accent);
+  margin-top: 0.4rem;
+  font-family: 'Inter', sans-serif;
+}
+
+.tt-diff {
+  font-size: 0.72rem;
+  color: rgba(255,255,255,0.5);
+  font-family: 'Inter', sans-serif;
+  margin-top: 0.15rem;
+}
+
+/* ── REDUCED MOTION ── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .chip { opacity: 1; transform: none; }
+}
+
+/* ── BOROUGH SELECTOR — NYC Subway Sign Style ── */
+.borough-selector {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  gap: 5px;
+  width: 100%;
+}
+
+.borough-btn {
+  flex: 1;
+  display: flex;
+  align-items: stretch;
+  padding: 0;
+  background: none;
+  border: none;
+  border-radius: 0;
+  cursor: pointer;
+  /* Double-frame MTA: thin outer ring */
+  box-shadow: 0 0 0 1.5px #555, 2px 3px 8px rgba(0,0,0,0.35);
+  transition: box-shadow 200ms, filter 200ms;
+  filter: brightness(0.65);
+}
+
+.borough-btn:hover {
+  filter: brightness(0.75);
+  box-shadow: 0 0 0 1.5px #aaa, 2px 4px 12px rgba(0,0,0,0.4);
+}
+
+.borough-btn.active {
+  filter: brightness(1);
+  box-shadow: 0 0 0 2px #fff, 3px 5px 16px rgba(0,0,0,0.5);
+}
+
+.borough-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+/* Cuerpo negro del cartel */
+.borough-btn-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 0.3rem;
+  padding: 1rem 0.9rem 1rem 1.1rem;
+  background: #111;
+  /* Línea divisoria interna */
+  border-right: 2px solid #2a2a2a;
+  min-width: 0;
+}
+
+.borough-arrow {
+  color: #aaa;
+  font-size: 1rem;
+  line-height: 1;
+  font-style: normal;
+}
+
+.borough-name {
+  font-family: 'Helvetica Neue', 'Arial', sans-serif;
+  font-size: clamp(0.7rem, 1.4vw, 1rem);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #fff;
+  line-height: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+/* Bullet — columna coloreada al extremo derecho */
+.borough-bullet {
+  flex-shrink: 0;
+  width: 52px;
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Helvetica Neue', 'Arial', sans-serif;
+  font-size: 0.72rem;
+  font-weight: 900;
+  color: #fff;
+  line-height: 1;
+}
+
+.borough-bullet::after {
+  content: attr(data-label);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 2.5px solid rgba(255,255,255,0.95);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
+.borough-bullet { background: #111; }
+
+.borough-bullet[data-borough="Manhattan"]::after    { background: #c9291e; }
+.borough-bullet[data-borough="Brooklyn"]::after     { background: #1e3e8a; }
+.borough-bullet[data-borough="Queens"]::after       { background: #00702c; }
+.borough-bullet[data-borough="Bronx"]::after        { background: #d44e00; }
+.borough-bullet[data-borough="Staten Island"]::after{ background: #52206e; }
+
+@media (max-width: 700px) {
+  .borough-selector { flex-wrap: wrap; }
+  .borough-btn { flex: 1 1 calc(50% - 5px); }
+  .borough-btn-body { padding: 0.85rem 0.7rem; }
+  .borough-name { font-size: 0.72rem; }
+  .borough-bullet { width: 44px; }
+  .borough-bullet::after { width: 30px; height: 30px; font-size: 0.65rem; }
+}
+
+/* ── BOROUGH BACKGROUND ── */
+#airbnb-viz {
+  position: relative;
+}
+
+#borough-bg {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  opacity: 0;
+  transition: opacity 600ms var(--ease-out);
+  pointer-events: none;
+  z-index: 0;
+  /* dark overlay via mask */
+  -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,0.18) 0%, rgba(0,0,0,0.12) 100%);
+  mask-image: linear-gradient(to bottom, rgba(0,0,0,0.18) 0%, rgba(0,0,0,0.12) 100%);
+}
+
+#borough-bg.visible {
+  opacity: 1;
+}
+
+/* push all section children above the bg */
+#airbnb-viz > *:not(#borough-bg) {
+  position: relative;
+  z-index: 1;
+}
+
+/* placeholder when no borough selected */
+.chips-placeholder {
+  color: var(--muted);
+  font-family: 'Inter', sans-serif;
+  font-size: 0.88rem;
+  padding: 1rem 0;
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 600px) {
+  .viz-title {
+    font-size: clamp(2.2rem, 12vw, 3.5rem);
+  }
+
+  .price-value {
+    font-size: clamp(3.5rem, 18vw, 6rem);
+  }
+
+  .toggle-btn {
+    font-size: 0.78rem;
+    padding: 0.4rem 1rem;
+  }
+
+  .chip {
+    font-size: 0.72rem;
+    padding: 0.25rem 0.75rem;
+  }
+}
+
+/* ── BOROUGH COMPARISON SECTION ── */
+#borough-comparison {
+  border-top: 1px solid rgba(0,0,0,0.08);
+  background: var(--bg);
+  padding: 44px clamp(1.5rem, 5vw, 4rem) 72px;
+}
+
+.comparison-inner {
+  max-width: none;
+  width: 100%;
+  margin: 0;
+}
+
+.comparison-eyebrow {
+  font-family: 'Inter', sans-serif;
+  font-size: clamp(0.7rem, 1.5vw, 0.8rem);
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 0.75rem;
+}
+
+.comparison-title {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: clamp(2rem, 5vw, 3rem);
+  line-height: 1.05;
+  color: var(--ink);
+  margin-bottom: 0.5rem;
+  text-wrap: balance;
+}
+
+.comparison-subtitle {
+  font-family: 'Inter', sans-serif;
+  font-size: clamp(0.85rem, 2vw, 1rem);
+  font-weight: 400;
+  color: #444;
+  margin-bottom: 3rem;
+}
+
+/* Two-column layout for the charts */
+.comparison-charts-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 48px;
+}
+
+@media (max-width: 760px) {
+  .comparison-charts-grid {
+    grid-template-columns: 1fr;
+    gap: 48px;
+  }
+}
+
+.chart-panel-title {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #777;
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.6rem;
+  border-bottom: 1px solid rgba(0,0,0,0.08);
+}
+
+.comparison-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.bar-row {
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
+.bar-label {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 0.95rem;
+  color: var(--ink);
+  width: 110px;
+  flex-shrink: 0;
+  text-align: right;
+  padding-right: 14px;
+  line-height: 1.2;
+}
+
+.bar-track {
+  flex: 1;
+  position: relative;
+  height: 28px;
+  display: flex;
+  align-items: center;
+}
+
+.bar-fill {
+  height: 28px;
+  border-radius: 0 4px 4px 0;
+  width: 0;
+  transition: width 800ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.bar-info {
+  margin-left: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.bar-price {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--ink);
+  white-space: nowrap;
+}
+
+.bar-range {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.68rem;
+  font-weight: 400;
+  color: #777;
+  white-space: nowrap;
+}
+
+.comparison-note {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: #777;
+  margin-top: 2.5rem;
+}
+
+/* Bar highlight state */
+.bar-row {
+  transition: opacity 250ms var(--ease-out);
+}
+.comparison-bars.has-selection .bar-row {
+  opacity: 0.35;
+}
+.comparison-bars.has-selection .bar-row.highlighted {
+  opacity: 1;
+}
+.bar-row.highlighted .bar-price {
+  color: var(--ink);
+}
+.bar-row.highlighted .bar-fill {
+  box-shadow: 0 0 0 2px rgba(0,0,0,0.15);
+}
+
+@media (max-width: 600px) {
+  .bar-label {
+    width: 80px;
+    font-size: 0.8rem;
+  }
+  .bar-info { margin-left: 8px; }
+  .bar-price { font-size: 0.8rem; }
+  .bar-range { font-size: 0.62rem; }
+}
+
+
+/* Fix de recorte: barras con aire suficiente dentro del iframe */
+#airbnb-viz,
+#borough-comparison{
+  overflow: visible !important;
+}
+
+#borough-comparison{
+  padding-bottom: 5rem !important;
+}
+
+.comparison-charts-grid{
+  align-items: start !important;
+  overflow: visible !important;
+}
+
+.comparison-bars{
+  overflow: visible !important;
+  padding-bottom: 1.5rem !important;
+}
+
+.bar-row{
+  min-height: 46px !important;
+  overflow: visible !important;
+}
+
+.bar-track,
+.bar-fill{
+  min-height: 28px !important;
+  overflow: visible !important;
+}
+
+</style>
+</head>
+<body>
+<section id="airbnb-viz" aria-label="Precios Airbnb por barrio de NYC">
+
+  <!-- Header -->
+  <header class="viz-header">
+    <p class="viz-eyebrow">Presupuesto por noche</p>
+    <h2 class="viz-title">Rangos de precio por barrio</h2>
+  </header>
+
+  <!-- Selector de borough -->
+  <div class="borough-selector" id="boroughSelector" role="group" aria-label="Seleccionar borough">
+    <button class="borough-btn" data-borough="Manhattan">
+      <span class="borough-btn-body">
+        <span class="borough-arrow" aria-hidden="true">&#8598;</span>
+        <span class="borough-name">Manhattan</span>
+      </span>
+      <span class="borough-bullet" data-borough="Manhattan" data-label="M" aria-hidden="true"></span>
+    </button>
+    <button class="borough-btn" data-borough="Brooklyn">
+      <span class="borough-btn-body">
+        <span class="borough-arrow" aria-hidden="true">&#8599;</span>
+        <span class="borough-name">Brooklyn</span>
+      </span>
+      <span class="borough-bullet" data-borough="Brooklyn" data-label="BK" aria-hidden="true"></span>
+    </button>
+    <button class="borough-btn" data-borough="Queens">
+      <span class="borough-btn-body">
+        <span class="borough-arrow" aria-hidden="true">&#8600;</span>
+        <span class="borough-name">Queens</span>
+      </span>
+      <span class="borough-bullet" data-borough="Queens" data-label="Q" aria-hidden="true"></span>
+    </button>
+    <button class="borough-btn" data-borough="Bronx">
+      <span class="borough-btn-body">
+        <span class="borough-arrow" aria-hidden="true">&#8598;</span>
+        <span class="borough-name">Bronx</span>
+      </span>
+      <span class="borough-bullet" data-borough="Bronx" data-label="BX" aria-hidden="true"></span>
+    </button>
+    <button class="borough-btn" data-borough="Staten Island">
+      <span class="borough-btn-body">
+        <span class="borough-arrow" aria-hidden="true">&#8601;</span>
+        <span class="borough-name">Staten Island</span>
+      </span>
+      <span class="borough-bullet" data-borough="Staten Island" data-label="SI" aria-hidden="true"></span>
+    </button>
+  </div>
+
+  <!-- Toggle -->
+  <div class="viz-toggle" role="group" aria-label="Tipo de alojamiento">
+    <button class="toggle-btn active" data-type="entireHome" id="btn-entire">
+      Casa
+    </button>
+    <button class="toggle-btn" data-type="privateRoom" id="btn-room">
+      Habitación privada
+    </button>
+  </div>
+
+  <!-- Slider -->
+  <div class="viz-slider-wrap">
+    <div class="viz-price" id="priceDisplay">
+      <span class="price-value" id="priceValue">120</span>
+      <span class="price-unit">USD / noche</span>
+    </div>
+    <div class="slider-track-wrap">
+      <input
+        type="range" id="budgetSlider"
+        min="30" max="500" value="120" step="5"
+        aria-label="Presupuesto por noche en USD"
+        class="viz-range"
+      >
+      <div class="slider-labels">
+        <span>$30</span><span>$500</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contador -->
+  <div class="viz-counter" aria-live="polite">
+    <span id="countNumber" class="count-number">0</span>
+    <span class="count-label"> barrios en tu presupuesto</span>
+  </div>
+
+  <!-- Grilla de chips -->
+  <div class="viz-chips" id="chipsGrid" role="list" aria-label="Barrios de NYC">
+    <!-- generados por JS -->
+  </div>
+
+  <!-- Fuente -->
+  <p class="viz-source">Fuente: dataset Airbnb NYC · Precios en USD · promedio por noche</p>
+
+</section>
+
+<!-- ── BOROUGH PRICE COMPARISON ── -->
+<section id="borough-comparison" aria-label="Comparación de precios por borough">
+  <div class="comparison-inner">
+    <p class="comparison-eyebrow">Precio promedio por borough</p>
+    <h2 class="comparison-title">¿Dónde conviene alojarse?</h2>
+    <p class="comparison-subtitle">Precio promedio por noche · por tipo de alojamiento</p>
+    <div class="comparison-charts-grid">
+      <div>
+        <p class="chart-panel-title">Casa entera</p>
+        <div class="comparison-bars" id="barsEntireHome"></div>
+      </div>
+      <div>
+        <p class="chart-panel-title">Habitación privada</p>
+        <div class="comparison-bars" id="barsPrivateRoom"></div>
+      </div>
+    </div>
+    <p class="comparison-note">Promedio calculado en base a los datos del conjunto</p>
+  </div>
+</section>
+
+  <script>
+const DATA = {"Bronx":{"Allerton":{"entire home":128,"private room":73},"Baychester":{"entire home":90,"private room":61},"Belmont":{"entire home":228,"private room":61},"Bronxdale":{"entire home":69,"private room":45},"Castle Hill":{"entire home":74},"City Island":{"entire home":112,"private room":72},"Claremont Village":{"entire home":88,"private room":54},"Clason Point":{"entire home":107,"private room":52,"shared room":42},"Concourse":{"entire home":110,"private room":49},"Concourse Village":{"entire home":103,"private room":55},"East Morrisania":{"entire home":126,"private room":67},"Eastchester":{"entire home":184,"private room":72},"Edenwald":{"entire home":82,"private room":75},"Fieldston":{"entire home":99,"private room":59},"Fordham":{"entire home":106,"private room":58,"shared room":38},"Highbridge":{"entire home":113,"private room":62},"Hunts Point":{"private room":42},"Kingsbridge":{"entire home":137,"private room":54,"shared room":47},"Longwood":{"entire home":96,"private room":61},"Melrose":{"entire home":97,"private room":74},"Morris Heights":{"entire home":96,"private room":49},"Morris Park":{"entire home":125,"private room":58},"Morrisania":{"entire home":145,"private room":44},"Mott Haven":{"entire home":113,"private room":57},"Mount Eden":{"private room":42},"Mount Hope":{"entire home":130,"private room":46},"North Riverdale":{"private room":43},"Norwood":{"entire home":160,"private room":61},"Parkchester":{"entire home":101,"private room":44},"Pelham Bay":{"entire home":125,"private room":69},"Pelham Gardens":{"entire home":112,"private room":39},"Port Morris":{"entire home":121,"private room":65,"shared room":28},"Riverdale":{"entire home":168},"Schuylerville":{"entire home":85,"private room":66},"Soundview":{"entire home":83,"private room":42},"Spuyten Duyvil":{"entire home":240},"Throgs Neck":{"entire home":131,"private room":66},"Tremont":{"entire home":95,"private room":41,"shared room":37},"Unionport":{"entire home":95},"University Heights":{"private room":49},"Van Nest":{"entire home":119,"private room":36,"shared room":20},"Wakefield":{"entire home":127,"private room":52},"Westchester Square":{"entire home":221,"private room":52},"Williamsbridge":{"entire home":133,"private room":55},"Woodlawn":{"entire home":65,"private room":48}},"Brooklyn":{"Bath Beach":{"entire home":129,"private room":55},"Bay Ridge":{"entire home":150,"private room":83,"shared room":24},"Bedford-Stuyvesant":{"entire home":149,"private room":64,"shared room":36},"Bensonhurst":{"entire home":107,"private room":52},"Bergen Beach":{"entire home":110},"Boerum Hill":{"entire home":188,"private room":89},"Borough Park":{"entire home":116,"private room":54,"shared room":34},"Brighton Beach":{"entire home":123,"private room":60,"shared room":66},"Brooklyn Heights":{"entire home":242,"private room":105},"Brownsville":{"entire home":130,"private room":60},"Bushwick":{"entire home":147,"private room":64,"shared room":30},"Canarsie":{"entire home":119,"private room":60},"Carroll Gardens":{"entire home":192,"private room":96},"Clinton Hill":{"entire home":203,"private room":100,"shared room":42},"Cobble Hill":{"entire home":214,"private room":92},"Columbia St":{"entire home":150,"private room":67},"Coney Island":{"entire home":164,"private room":160,"shared room":26},"Crown Heights":{"entire home":167,"private room":68,"shared room":38},"Cypress Hills":{"entire home":135,"private room":56,"shared room":34},"DUMBO":{"entire home":220,"private room":128},"Downtown Brooklyn":{"entire home":193,"private room":117},"Dyker Heights":{"entire home":121,"private room":69},"East Flatbush":{"entire home":124,"private room":103,"shared room":38},"East New York":{"entire home":118,"private room":59,"shared room":52},"Flatbush":{"entire home":135,"private room":65,"shared room":31},"Flatlands":{"entire home":123,"private room":79},"Fort Greene":{"entire home":200,"private room":87,"shared room":33},"Fort Hamilton":{"entire home":122,"private room":67,"shared room":30},"Gowanus":{"entire home":203,"private room":104},"Gravesend":{"entire home":110,"private room":61,"shared room":25},"Greenpoint":{"entire home":172,"private room":84,"shared room":37},"Kensington":{"entire home":113,"private room":57},"Manhattan Beach":{"entire home":107,"private room":85},"Midwood":{"entire home":98,"private room":62,"shared room":29},"Mill Basin":{"entire home":179},"Navy Yard":{"entire home":211,"private room":150},"Park Slope":{"entire home":202,"private room":98},"Prospect Heights":{"entire home":204,"private room":80},"Prospect-Lefferts Gardens":{"entire home":147,"private room":64,"shared room":28},"Red Hook":{"entire home":182,"private room":66},"Sea Gate":{"entire home":805},"Sheepshead Bay":{"entire home":142,"private room":56,"shared room":37},"South Slope":{"entire home":168,"private room":78},"Sunset Park":{"entire home":156,"private room":55,"shared room":44},"Vinegar Hill":{"entire home":194,"private room":82},"Williamsburg":{"entire home":205,"private room":83,"shared room":74},"Windsor Terrace":{"entire home":142,"private room":63}},"Manhattan":{"Battery Park City":{"entire home":204,"private room":88},"Chelsea":{"entire home":267,"private room":118,"shared room":76},"Chinatown":{"entire home":201,"private room":98,"shared room":61},"Civic Center":{"entire home":244,"private room":132},"East Harlem":{"entire home":178,"private room":89,"shared room":59},"East Village":{"entire home":224,"private room":103,"shared room":97},"Financial District":{"entire home":259,"private room":154,"shared room":150},"Flatiron District":{"entire home":386,"private room":118},"Gramercy":{"entire home":257,"private room":109,"shared room":63},"Greenwich Village":{"entire home":268,"private room":127},"Harlem":{"entire home":183,"private room":78,"shared room":64},"Hell's Kitchen":{"entire home":244,"private room":131,"shared room":81},"Inwood":{"entire home":116,"private room":67},"Kips Bay":{"entire home":229,"private room":123,"shared room":40},"Little Italy":{"entire home":206,"private room":97,"shared room":82},"Lower East Side":{"entire home":225,"private room":106,"shared room":51},"Marble Hill":{"entire home":120,"private room":54},"Midtown":{"entire home":311,"private room":174,"shared room":78},"Morningside Heights":{"entire home":158,"private room":91},"Murray Hill":{"entire home":263,"private room":126,"shared room":201},"NoHo":{"entire home":344,"private room":144},"Nolita":{"entire home":287,"private room":118,"shared room":75},"Roosevelt Island":{"entire home":184,"private room":92},"SoHo":{"entire home":383,"private room":131},"Stuyvesant Town":{"entire home":199,"private room":101},"Theater District":{"entire home":316,"private room":178,"shared room":79},"Tribeca":{"entire home":450,"private room":151},"Two Bridges":{"entire home":167,"private room":104},"Upper East Side":{"entire home":200,"private room":112,"shared room":67},"Upper West Side":{"entire home":227,"private room":108,"shared room":63},"Washington Heights":{"entire home":148,"private room":64,"shared room":52},"West Village":{"entire home":268,"private room":208}},"Queens":{"Arverne":{"entire home":203,"private room":88},"Astoria":{"entire home":138,"private room":73,"shared room":47},"Bay Terrace":{"entire home":186},"Bayside":{"entire home":398,"private room":48},"Bayswater":{"entire home":167,"private room":56},"Belle Harbor":{"entire home":148,"private room":178},"Bellerose":{"private room":80},"Briarwood":{"entire home":88,"private room":61,"shared room":51},"Cambria Heights":{"entire home":136,"private room":56},"College Point":{"entire home":129,"private room":53},"Corona":{"entire home":122,"private room":48,"shared room":30},"Ditmars Steinway":{"entire home":124,"private room":67},"Douglaston":{"entire home":134,"private room":52},"East Elmhurst":{"entire home":134,"private room":53,"shared room":40},"Edgemere":{"entire home":139,"private room":52},"Elmhurst":{"entire home":138,"private room":59,"shared room":32},"Far Rockaway":{"entire home":134,"private room":54},"Flushing":{"entire home":148,"private room":60,"shared room":42},"Forest Hills":{"entire home":116,"private room":104,"shared room":52},"Fresh Meadows":{"entire home":122,"private room":62},"Glendale":{"entire home":135,"private room":46},"Hollis":{"entire home":125,"private room":57},"Holliswood":{"private room":159},"Howard Beach":{"entire home":163,"private room":60},"Jackson Heights":{"entire home":126,"private room":58,"shared room":39},"Jamaica":{"entire home":118,"private room":61,"shared room":37},"Jamaica Estates":{"entire home":160,"private room":47},"Jamaica Hills":{"entire home":236,"private room":66},"Kew Gardens":{"entire home":156,"private room":54,"shared room":41},"Kew Gardens Hills":{"entire home":116,"private room":59},"Laurelton":{"entire home":134,"private room":66},"Long Island City":{"entire home":177,"private room":76,"shared room":39},"Maspeth":{"entire home":125,"private room":54},"Middle Village":{"entire home":128,"private room":58},"Neponsit":{"entire home":274},"Ozone Park":{"entire home":108,"private room":56},"Queens Village":{"entire home":93,"private room":51},"Rego Park":{"entire home":122,"private room":56,"shared room":62},"Richmond Hill":{"entire home":135,"private room":58,"shared room":59},"Ridgewood":{"entire home":139,"private room":58},"Rockaway Beach":{"entire home":155,"private room":82},"Rosedale":{"entire home":99,"private room":55},"South Ozone Park":{"entire home":129,"private room":72,"shared room":31},"Springfield Gardens":{"entire home":125,"private room":65},"St. Albans":{"entire home":165,"private room":54},"Sunnyside":{"entire home":128,"private room":64,"shared room":37},"Whitestone":{"private room":46},"Woodhaven":{"entire home":96,"private room":54,"shared room":34},"Woodside":{"entire home":145,"private room":53}},"Staten Island":{"Arden Heights":{"entire home":76},"Arrochar":{"entire home":141,"private room":46},"Bull's Head":{"private room":48},"Castleton Corners":{"entire home":182},"Clifton":{"entire home":93,"private room":49},"Concord":{"entire home":140,"private room":38},"Dongan Hills":{"entire home":101,"private room":50},"Emerson Hill":{"entire home":63},"Graniteville":{"entire home":93},"Grant City":{"entire home":70},"Great Kills":{"entire home":70,"private room":124},"Grymes Hill":{"entire home":162},"Huguenot":{"entire home":118},"Mariners Harbor":{"entire home":120,"private room":52},"Midland Beach":{"entire home":103},"New Brighton":{"private room":65},"New Dorp Beach":{"private room":38},"New Springville":{"entire home":81,"private room":51},"Oakwood":{"private room":58},"Port Richmond":{"private room":48},"Randall Manor":{"entire home":107,"private room":55},"Rosebank":{"entire home":132,"private room":60},"Shore Acres":{"entire home":105},"South Beach":{"private room":69},"St. George":{"entire home":115,"private room":77},"Stapleton":{"entire home":137,"private room":58},"Todt Hill":{"entire home":98},"Tompkinsville":{"entire home":117,"private room":53},"Tottenville":{"entire home":160},"West Brighton":{"entire home":92,"private room":57}}};
+
+const BOROUGH_COLORS = {
+  "Manhattan":    "var(--manhattan)",
+  "Brooklyn":     "var(--brooklyn)",
+  "Queens":       "var(--queens)",
+  "Bronx":        "var(--bronx)",
+  "Staten Island":"var(--staten)",
+};
+
+const BOROUGH_PHOTOS = {
+  "Manhattan":    "https://images.unsplash.com/photo-1534430480872-3498386e7856?w=1200&q=80",
+  "Brooklyn":     "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=1200&q=80",
+  "Queens":       "queens.jpg.avif",
+  "Bronx":        "Bronx.jpg",
+  "Staten Island":"statenIsland.webp",
+};
+
+// Aplanar todos los barrios en un array de objetos
+function buildNeighborhoods() {
+  const result = [];
+  for (const [borough, zones] of Object.entries(DATA)) {
+    for (const [name, prices] of Object.entries(zones)) {
+      result.push({
+        borough,
+        name,
+        entireHome: prices['entire home'] ?? null,
+        privateRoom: prices['private room'] ?? null,
+      });
+    }
+  }
+  return result;
+}
+
+const NEIGHBORHOODS = buildNeighborhoods();
+
+// ── TOOLTIP ──────────────────────────────────────────────────────────────────
+const tooltip = document.createElement('div');
+tooltip.id = 'viz-tooltip';
+tooltip.setAttribute('role', 'tooltip');
+tooltip.setAttribute('aria-hidden', 'true');
+tooltip.innerHTML = `
+  <div class="tt-name" id="tt-name"></div>
+  <div class="tt-borough" id="tt-borough"></div>
+  <div class="tt-price" id="tt-price"></div>
+  <div class="tt-diff" id="tt-diff"></div>
+`;
+document.body.appendChild(tooltip);
+
+// ── BOROUGH BACKGROUND ───────────────────────────────────────────────────────
+const boroughBg = document.createElement('div');
+boroughBg.id = 'borough-bg';
+document.getElementById('airbnb-viz').prepend(boroughBg);
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+let currentType = 'entireHome'; // or 'privateRoom'
+let currentBudget = 120;
+const RANGE_PCT = 0.20; // ±20%
+let selectedBorough = null;
+
+// ── BOROUGH AVERAGES (para calcular diff en tooltip) ──────────────────────────
+function boroughAvg(borough, type) {
+  const vals = Object.values(DATA[borough])
+    .map(p => type === 'entireHome' ? p['entire home'] : p['private room'])
+    .filter(Boolean);
+  if (!vals.length) return null;
+  return Math.round(vals.reduce((a, v) => a + v, 0) / vals.length);
+}
+
+const BOROUGH_AVG = {};
+for (const b of Object.keys(DATA)) {
+  BOROUGH_AVG[b] = {
+    entireHome: boroughAvg(b, 'entireHome'),
+    privateRoom: boroughAvg(b, 'privateRoom'),
+  };
+}
+
+// ── RENDER CHIPS ──────────────────────────────────────────────────────────────
+const chipsGrid = document.getElementById('chipsGrid');
+const chipsMap = new Map(); // "borough::name" → chip element
+
+function renderChips() {
+  chipsGrid.innerHTML = '';
+  chipsMap.clear();
+
+  if (!selectedBorough) {
+    const placeholder = document.createElement('p');
+    placeholder.className = 'chips-placeholder';
+    placeholder.textContent = 'Seleccioná un borough para ver sus barrios';
+    chipsGrid.appendChild(placeholder);
+    return;
+  }
+
+  const visible = NEIGHBORHOODS.filter(n => n.borough === selectedBorough);
+  visible.forEach(n => {
+    const chip = document.createElement('span');
+    chip.className = 'chip';
+    chip.textContent = n.name;
+    chip.dataset.borough = n.borough;
+    chip.setAttribute('role', 'listitem');
+
+    chip.addEventListener('mouseenter', (e) => showTooltip(e, n));
+    chip.addEventListener('mouseleave', hideTooltip);
+    chip.addEventListener('mousemove', moveTooltip);
+
+    chipsGrid.appendChild(chip);
+    chipsMap.set(`${n.borough}::${n.name}`, chip);
+  });
+}
+
+// ── FILTER ────────────────────────────────────────────────────────────────────
+function filterChips() {
+  tooltip.classList.remove('visible'); // dismiss stale tooltip on filter change
+
+  if (!selectedBorough) {
+    document.getElementById('countNumber').textContent = '0';
+    document.getElementById('priceValue').textContent = currentBudget;
+    return;
+  }
+
+  const lo = currentBudget * (1 - RANGE_PCT);
+  const hi = currentBudget * (1 + RANGE_PCT);
+  let litCount = 0;
+
+  NEIGHBORHOODS.filter(n => n.borough === selectedBorough).forEach(n => {
+    const price = currentType === 'entireHome' ? n.entireHome : n.privateRoom;
+    const chip = chipsMap.get(`${n.borough}::${n.name}`);
+    if (!chip) return;
+
+    if (price !== null && price >= lo && price <= hi) {
+      chip.classList.add('lit');
+      chip.setAttribute('aria-label',
+        `${n.name}, ${n.borough}, USD ${price} por noche`);
+      litCount++;
+    } else {
+      chip.classList.remove('lit');
+      chip.removeAttribute('aria-label');
+    }
+  });
+
+  document.getElementById('countNumber').textContent = litCount;
+  document.getElementById('priceValue').textContent = currentBudget;
+}
+
+// ── TOOLTIP LOGIC ─────────────────────────────────────────────────────────────
+function showTooltip(e, n) {
+  const price = currentType === 'entireHome' ? n.entireHome : n.privateRoom;
+  if (!price) return;
+
+  const avg = BOROUGH_AVG[n.borough][currentType];
+  const diffPct = avg ? Math.round(((price - avg) / avg) * 100) : null;
+  const diffStr = diffPct !== null
+    ? (diffPct > 0 ? `↑ ${diffPct}% sobre el promedio de ${n.borough}`
+                   : `↓ ${Math.abs(diffPct)}% bajo el promedio de ${n.borough}`)
+    : '';
+
+  document.getElementById('tt-name').textContent = n.name;
+  document.getElementById('tt-borough').textContent = n.borough;
+  document.getElementById('tt-price').textContent = `USD ${price} / noche`;
+  document.getElementById('tt-diff').textContent = diffStr;
+
+  tooltip.classList.add('visible');
+  moveTooltip(e);
+}
+
+function hideTooltip() {
+  tooltip.classList.remove('visible');
+}
+
+function moveTooltip(e) {
+  const x = e.clientX + 14;
+  const y = e.clientY - 10;
+  const tw = 200;
+  const tx = x + tw > window.innerWidth ? e.clientX - tw - 14 : x;
+  tooltip.style.left = `${tx}px`;
+  tooltip.style.top  = `${y}px`;
+}
+
+// ── BOROUGH SELECTION ────────────────────────────────────────────────────────
+function deselectBorough() {
+  selectedBorough = null;
+
+  // Clear bar highlights
+  document.querySelectorAll('.comparison-bars').forEach(container => {
+    container.classList.remove('has-selection');
+    container.querySelectorAll('.bar-row').forEach(row => row.classList.remove('highlighted'));
+  });
+
+  // Clear button states
+  document.querySelectorAll('.borough-btn').forEach(btn => btn.classList.remove('active'));
+
+  // Hide background photo
+  boroughBg.classList.remove('visible');
+
+  // Reset chips
+  renderChips();
+  filterChips();
+  document.getElementById('countNumber').textContent = '0';
+}
+
+function highlightBoroughBars(borough) {
+  document.querySelectorAll('.comparison-bars').forEach(container => {
+    container.classList.add('has-selection');
+    container.querySelectorAll('.bar-row').forEach(row => {
+      row.classList.toggle('highlighted', row.dataset.borough === borough);
+    });
+  });
+}
+
+function selectBorough(borough) {
+  selectedBorough = borough;
+
+  // Highlight bars in comparison charts
+  highlightBoroughBars(borough);
+
+  // Update button states
+  document.querySelectorAll('.borough-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.borough === borough);
+  });
+
+  // Background photo — disabled
+  // boroughBg.style.backgroundImage = `url('${BOROUGH_PHOTOS[borough]}')`;
+  // boroughBg.classList.add('visible');
+
+  // Re-render chips for this borough then animate
+  renderChips();
+  filterChips();
+  animateChipsEntrance();
+  setTimeout(() => {
+    const litCount = chipsGrid.querySelectorAll('.chip.lit').length;
+    animateCounter(litCount);
+  }, 150);
+}
+
+document.querySelectorAll('.borough-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    if (selectedBorough === btn.dataset.borough) {
+      deselectBorough();
+    } else {
+      selectBorough(btn.dataset.borough);
+    }
+  });
+});
+
+// ── EVENTS ────────────────────────────────────────────────────────────────────
+document.getElementById('budgetSlider').addEventListener('input', (e) => {
+  currentBudget = parseInt(e.target.value, 10);
+  filterChips();
+});
+
+document.querySelectorAll('.toggle-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentType = btn.dataset.type;
+    filterChips();
+  });
+});
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+renderChips();
+filterChips();
+
+// ── ANIMATIONS ────────────────────────────────────────────────────────────────
+
+// Transition CSS para chips (activa después del stagger inicial)
+function armChipTransitions() {
+  chipsGrid.querySelectorAll('.chip').forEach(c => {
+    c.style.transition = [
+      'background 200ms var(--ease-out)',
+      'color 200ms var(--ease-out)',
+      'border-color 200ms var(--ease-out)',
+      'opacity 200ms var(--ease-out)',
+      'transform 200ms var(--ease-out)',
+    ].join(', ');
+  });
+}
+
+// Stagger de entrada para chips
+function animateChipsEntrance() {
+  const chips = Array.from(chipsGrid.querySelectorAll('.chip'));
+  const PER_ITEM_MS = 18;
+  const MAX_TOTAL_MS = 450;
+  const actualDelay = Math.min(PER_ITEM_MS, MAX_TOTAL_MS / chips.length);
+
+  chips.forEach((chip, i) => {
+    const delay = i * actualDelay;
+    chip.style.transitionDelay = `${delay}ms`;
+    chip.style.transitionProperty = 'opacity, transform';
+    chip.style.transitionDuration = '400ms';
+    chip.style.transitionTimingFunction = 'var(--ease-expo)';
+    // Force reflow then animate
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        chip.style.opacity = '1';
+        chip.style.transform = 'translateY(0)';
+      });
+    });
+  });
+
+  // Quitar delays individuales después de que termine el stagger
+  setTimeout(() => {
+    armChipTransitions();
+    chips.forEach(c => { c.style.transitionDelay = ''; });
+  }, chips.length * actualDelay + 450);
+}
+
+// Contador animado (cuenta de 0 al valor actual)
+function animateCounter(targetValue) {
+  const el = document.getElementById('countNumber');
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    el.textContent = targetValue;
+    return;
+  }
+  const duration = 600;
+  const start = performance.now();
+  const startVal = 0;
+
+  function tick(now) {
+    const elapsed = now - start;
+    const progress = Math.min(elapsed / duration, 1);
+    // ease-out-expo
+    const ease = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
+    el.textContent = Math.round(startVal + (targetValue - startVal) * ease);
+    if (progress < 1) requestAnimationFrame(tick);
+  }
+
+  requestAnimationFrame(tick);
+}
+
+// Intersection Observer — dispara una sola vez al entrar en viewport
+const vizSection = document.getElementById('airbnb-viz');
+let hasAnimated = false;
+
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting && !hasAnimated) {
+      hasAnimated = true;
+      observer.unobserve(vizSection);
+
+      // 1. Stagger chips
+      animateChipsEntrance();
+
+      // 2. Contador arranca después de que chips empiezan a aparecer
+      setTimeout(() => {
+        const litCount = chipsGrid.querySelectorAll('.chip.lit').length;
+        animateCounter(litCount);
+      }, 150);
+    }
+  });
+}, { threshold: 0.15 });
+
+observer.observe(vizSection);
+
+// ── BOROUGH COMPARISON CHART ──────────────────────────────────────────────────
+(function buildComparisonChart() {
+  const BOROUGH_CSS_COLORS = {
+    "Manhattan":    "#3ED6D0",
+    "Brooklyn":     "#3ED6D0",
+    "Queens":       "#3ED6D0",
+    "Bronx":        "#3ED6D0",
+    "Staten Island":"#3ED6D0",
+  };
+
+  // Calculate avg and min/max for a specific price type per borough
+  function getBoroughStats(borough, priceKey) {
+    const vals = Object.values(DATA[borough])
+      .map(p => p[priceKey])
+      .filter(v => typeof v === 'number');
+    if (!vals.length) return null;
+    const avg = Math.round(vals.reduce((a, v) => a + v, 0) / vals.length);
+    const min = Math.min(...vals);
+    const max = Math.max(...vals);
+    return { avg, min, max };
+  }
+
+  function buildChart(containerId, priceKey) {
+    const stats = {};
+    for (const borough of Object.keys(DATA)) {
+      const s = getBoroughStats(borough, priceKey);
+      if (s) stats[borough] = s;
+    }
+
+    const sorted = Object.keys(stats).sort((a, b) => stats[b].avg - stats[a].avg);
+    const maxAvg = stats[sorted[0]].avg;
+    const container = document.getElementById(containerId);
+
+    sorted.forEach((borough) => {
+      const { avg, min, max } = stats[borough];
+      const widthPct = (avg / maxAvg) * 100;
+      const color = BOROUGH_CSS_COLORS[borough];
+
+      const row = document.createElement('div');
+      row.className = 'bar-row';
+      row.dataset.borough = borough;
+      row.innerHTML = `
+        <span class="bar-label">${borough}</span>
+        <div class="bar-track">
+          <div class="bar-fill" data-width="${widthPct}" style="background:${color};"></div>
+        </div>
+        <div class="bar-info">
+          <span class="bar-price">$${avg} / noche</span>
+          <span class="bar-range">mín $${min} — máx $${max}</span>
+        </div>
+      `;
+      container.appendChild(row);
+    });
+  }
+
+  buildChart('barsEntireHome', 'entire home');
+  buildChart('barsPrivateRoom', 'private room');
+
+  // IntersectionObserver — animate all bars on viewport entry
+  const compSection = document.getElementById('borough-comparison');
+  let compAnimated = false;
+
+  const compObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting && !compAnimated) {
+        compAnimated = true;
+        compObserver.unobserve(compSection);
+
+        const fills = compSection.querySelectorAll('.bar-fill');
+        fills.forEach((fill, i) => {
+          setTimeout(() => {
+            fill.style.width = fill.dataset.width + '%';
+          }, i * 80);
+        });
+      }
+    });
+  }, { threshold: 0.2 });
+
+  compObserver.observe(compSection);
+})();
+  </script>
+</body>
+</html>
+
+<style>
+/* Integracion en index: quitar aire sobrante y ocupar pantalla */
+html, body{background:#f5f1ea!important;}
+#airbnb-viz{padding-top:clamp(2rem,4vw,4rem)!important;padding-bottom:clamp(1.5rem,3vw,2.4rem)!important;}
+.viz-source{margin-bottom:0!important;}
+#borough-comparison{margin-top:0!important;}
+</style>
+
+<style>
+/* Integracion: titulo interno mas chico y no competitivo */
+.viz-title{
+  font-size:clamp(1.75rem,3.4vw,3.2rem)!important;
+  line-height:1.02!important;
+  letter-spacing:-.025em!important;
+  max-width:760px!important;
+}
+.viz-eyebrow{
+  color:#138b88!important;
+  letter-spacing:.22em!important;
+}
+</style>
+
+<style>
+/* Integracion: compactar cierre de comparacion */
+#borough-comparison{padding-bottom:28px!important;}
+.comparison-note{margin-top:1.2rem!important;}
+.comparison-bars{gap:14px!important;}
+.bar-track,.bar-fill{height:22px!important;}
+</style>
+
+<style>
+/* Integracion: margen interno y sin scroll horizontal */
+html, body{
+  overflow:hidden!important;
+  width:100%!important;
+}
+#airbnb-viz,
+#borough-comparison{
+  padding-left:clamp(28px,7vw,110px)!important;
+  padding-right:clamp(28px,7vw,110px)!important;
+}
+#airbnb-viz{
+  padding-top:clamp(1.8rem,3.2vw,3.4rem)!important;
+}
+.borough-selector{
+  max-width:100%!important;
+}
+.borough-btn-body{
+  min-width:0!important;
+}
+.comparison-charts-grid{
+  max-width:100%!important;
+}
+@media(max-width:900px){
+  .borough-selector{flex-wrap:wrap!important;}
+  .borough-btn{flex:1 1 calc(50% - 5px)!important;}
+}
+</style>
+<style>
+/* Integracion final: respetar margen del index y no cortar contenido */
+html, body{
+  overflow:visible!important;
+  width:100%!important;
+}
+#airbnb-viz,
+#borough-comparison{
+  padding-left:10vw!important;
+  padding-right:10vw!important;
+}
+#airbnb-viz{
+  padding-top:clamp(1.8rem,3.2vw,3.4rem)!important;
+  padding-bottom:clamp(1.4rem,2.4vw,2rem)!important;
+}
+#borough-comparison{
+  padding-top:38px!important;
+  padding-bottom:40px!important;
+}
+.comparison-charts-grid{
+  gap:clamp(34px,4vw,64px)!important;
+}
+@media(max-width:760px){
+  #airbnb-viz,
+  #borough-comparison{
+    padding-left:7vw!important;
+    padding-right:7vw!important;
+  }
+}
+</style>

@@ -1,0 +1,229 @@
+:root {
+  --bg: #f5f1ea;
+  --text: #111;
+  --text-2: #333;
+  --text-3: #666;
+  --white: #fff;
+  --aqua: #3ED6D0;
+  --navy: #1A2744;
+  --green: #5DCAA5;
+  --tooltip: rgba(12,18,28,.96);
+  --border: rgba(17,17,17,.08);
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: auto; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Inter", sans-serif;
+}
+.hero {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  align-items: end;
+  overflow: hidden;
+  padding: 0 6vw 5rem;
+  background: linear-gradient(180deg, #182233 0%, #0f1620 100%);
+}
+.hero-media,.hero-overlay { position: absolute; inset: 0; }
+.hero-video { width: 100%; height: 100%; object-fit: cover; opacity: .35; }
+.hero-overlay { background: linear-gradient(180deg, rgba(7,11,18,.25) 0%, rgba(7,11,18,.58) 45%, rgba(7,11,18,.82) 100%); }
+.hero-inner { position: relative; z-index: 2; max-width: 900px; }
+.eyebrow { margin: 0 0 .8rem; font-size: .9rem; font-weight: 800; letter-spacing: .2em; text-transform: uppercase; color: rgba(255,255,255,.92); }
+.hero-kicker { margin: 0; color: rgba(255,255,255,.82); font-size: 1.05rem; font-weight: 600; }
+h1 { margin: .25rem 0 0; font-family: Georgia, serif; font-size: clamp(4rem, 10vw, 8rem); line-height: .92; color: #fff; }
+.deck { max-width: 720px; margin-top: 1.4rem; color: rgba(255,255,255,.88); font-size: 1.18rem; line-height: 1.75; }
+.scrolly-stage {
+  position: relative;
+  min-height: 820vh;
+  background: #f5f1ea;
+}
+.sticky-frame {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3vh 4vw 10vh;
+  overflow: hidden;
+}
+.chart-headings {
+  position: absolute;
+  top: 3vh;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(1080px, calc(100% - 8vw));
+  z-index: 6;
+  pointer-events: none;
+}
+.chart-heading {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity .6s ease, transform .6s ease;
+}
+.chart-heading.active {
+  opacity: 1;
+  transform: translateY(0);
+}
+.chart-kicker {
+  margin: 0 0 .45rem;
+  font-size: .78rem;
+  font-weight: 800;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+.chart-heading h2 {
+  margin: 0;
+  max-width: 760px;
+  font-family: Georgia, serif;
+  font-size: clamp(2rem, 3vw, 3.1rem);
+  line-height: 1.02;
+  color: var(--text);
+}
+.chart-stack { position: relative; width: min(1180px, 100%); height: 72vh; margin-top: 12vh; }
+.chart-panel {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transform: scale(1.015);
+  filter: blur(8px);
+  transition:
+    opacity .8s cubic-bezier(.22, 1, .36, 1),
+    transform .8s cubic-bezier(.22, 1, .36, 1),
+    filter .8s cubic-bezier(.22, 1, .36, 1);
+  pointer-events: none;
+}
+.chart-panel.active {
+  opacity: 1;
+  transform: scale(1);
+  filter: blur(0);
+  pointer-events: auto;
+}
+.chart-frame {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4vh 3vw 10vh;
+}
+.chart-panel .flourish-embed {
+  width: min(980px, 100%);
+  height: 54vh;
+}
+.floating-card {
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  width: min(400px, 40vw);
+  padding: 1.25rem 1.3rem;
+  border-radius: 22px;
+  background: var(--tooltip);
+  color: var(--white);
+  box-shadow: 0 28px 70px rgba(0,0,0,.24);
+  opacity: 0;
+  transform: translate(-50%, var(--card-shift, 18vh));
+  pointer-events: none;
+  z-index: 5;
+  will-change: transform, opacity;
+}
+.floating-card.active { opacity: var(--card-opacity, 1); }
+.fact-label {
+  display: inline-block; margin: 0 0 .45rem; font-size: .74rem; font-weight: 800; letter-spacing: .15em; text-transform: uppercase;
+}
+.floating-card h2 {
+  margin: 0 0 .65rem; font-family: Georgia, serif; font-size: clamp(1.8rem, 3vw, 2.8rem); line-height: 1.02;
+}
+.floating-card p {
+  margin: 0 0 .85rem; font-size: 1rem; line-height: 1.65; color: rgba(255,255,255,.92);
+}
+.floating-card p:last-child { margin-bottom: 0; }
+.floating-card .fact-label,
+.floating-card h2 {
+  color: var(--aqua);
+}
+.floating-card p,
+.floating-card strong {
+  color: #ffffff;
+}
+.scroll-steps { position: relative; z-index: 1; }
+.trigger-step { height: 100vh; }
+.poster-bridge {
+  padding: clamp(100px, 16vh, 180px) 7vw clamp(90px, 13vh, 150px);
+  background: var(--bg);
+  border-top: 1px solid var(--border);
+}
+.poster-bridge-kicker {
+  margin: 0 0 1rem;
+  color: #138b88;
+  font-size: .78rem;
+  font-weight: 800;
+  letter-spacing: .2em;
+}
+.poster-bridge h2 {
+  max-width: 940px;
+  margin: 0 0 1.5rem;
+  font-family: Georgia, serif;
+  font-size: clamp(3rem, 7vw, 7.4rem);
+  font-weight: 400;
+  line-height: .92;
+}
+.poster-bridge p {
+  max-width: 980px;
+  margin: 0 0 .9rem;
+  color: var(--text-2);
+  font-size: clamp(1.05rem, 1.5vw, 1.35rem);
+  line-height: 1.65;
+}
+.poster-embed-section {
+  position: relative;
+  height: var(--poster-track-height, 420vh);
+  min-height: 100vh;
+  background: var(--bg);
+}
+.poster-embed-section iframe {
+  position: sticky;
+  top: 0;
+  display: block;
+  width: 100%;
+  height: 100vh;
+  border: 0;
+  background: var(--bg);
+}
+@media (max-width: 1024px) {
+  .hero { min-height: auto; padding: 6rem 6vw 4rem; align-items: end; }
+  .sticky-frame { position: relative; height: auto; min-height: 100vh; display: block; padding: 2rem 1rem 3rem; }
+  .chart-headings {
+    position: relative;
+    top: auto;
+    left: auto;
+    transform: none;
+    width: 100%;
+    margin-bottom: 1rem;
+  }
+  .chart-heading {
+    position: relative;
+    opacity: 0;
+    display: none;
+  }
+  .chart-heading.active {
+    display: block;
+    opacity: 1;
+  }
+  .chart-stack { height: 60vh; margin-bottom: 1rem; }
+  .chart-frame { padding: 0; }
+  .chart-panel .flourish-embed { width: 100%; height: 60vh; }
+  .floating-card {
+    position: relative; left: auto; top: auto; transform: none; width: 100%; opacity: 1; margin-top: 1rem;
+  }
+  .scrolly-stage { min-height: auto; }
+  .trigger-step { height: auto; min-height: 65vh; }
+  .poster-bridge { padding: 80px 24px 72px; }
+  .poster-embed-section iframe { height: 100svh; }
+}

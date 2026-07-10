@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nueva York — Guía de Atracciones</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.css"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.js"></script>
+<style>
+/* ── TOKENS ───────────────────────────────────────────────────────── */
+:root {
+    --bg:         #f5f1ea;
+    --surface:    #edeae2;
+    --ink:        #111;
+    --muted:      #555;
+    --accent:     #3ED6D0;
+    --accent-dim: rgba(62,214,208,0.12);
+    --accent-dark:#138b88;
+    --dark-blue:  #1A2744;
+    --green:      #5DCAA5;
+    --border:     rgba(0,0,0,0.08);
+    --sep:        rgba(0,0,0,0.10);
+    --tooltip-bg: rgba(12,18,28,0.96);
+    --ease-expo:  cubic-bezier(0.16, 1, 0.3, 1);
+    --ease-out:   cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+/* ── RESET ────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: var(--bg); }
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+    .cat-section { opacity: 1 !important; transform: none !important; }
+}
+
+/* ── LAYOUT ───────────────────────────────────────────────────────── */
+#nyc-cat-scroll {
+    display: flex;
+    background: var(--bg);
+    font-family: 'Inter', sans-serif;
+    position: relative;
+}
+#cat-map-container {
+    position: sticky;
+    top: 0;
+    flex: 0 0 66.666%;
+    height: 100vh;
+    overflow: hidden;
+    background: #0f1723;
+}
+#cat-map { width: 100%; height: 100%; }
+#cat-map-label {
+    position: absolute;
+    bottom: 28px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--bg);
+    border: 1px solid var(--sep);
+    color: var(--accent);
+    font-family: 'Inter', sans-serif;
+    font-size: clamp(0.6rem, 1.1vw, 0.72rem);
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    padding: 7px 22px;
+    border-radius: 30px;
+    opacity: 0;
+    transition: opacity 0.4s var(--ease-out);
+    pointer-events: none;
+    white-space: nowrap;
+    z-index: 900;
+    box-shadow: 0 2px 14px rgba(0,0,0,0.13);
+}
+#cat-scroll-right {
+    flex: 1;
+    min-width: 0;
+    overflow-y: visible;
+    background: var(--bg);
+}
+
+/* ── SECTIONS ─────────────────────────────────────────────────────── */
+.cat-section {
+    min-height: 100vh;
+    padding: 88px 40px 96px 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 0.7s var(--ease-expo), transform 0.7s var(--ease-expo);
+}
+.cat-section.visible { opacity: 1; transform: translateY(0); }
+
+/* ── INTRO HERO ───────────────────────────────────────────────────── */
+.cat-section[data-cat="INTRO"] {
+    background: #111;
+    padding: 80px 44px;
+    justify-content: flex-end;
+    min-height: 100vh;
+}
+.cat-section[data-cat="INTRO"] .cat-section-header {
+    border-bottom: 1px solid rgba(255,255,255,0.12);
+    padding-bottom: 28px;
+    margin-bottom: 0;
+}
+.cat-section[data-cat="INTRO"] .cat-section-header::after { display: none; }
+.cat-section[data-cat="INTRO"] .cat-eyebrow {
+    color: var(--accent);
+    letter-spacing: 0.32em;
+    font-size: clamp(0.65rem, 1.1vw, 0.78rem);
+}
+.cat-section[data-cat="INTRO"] .cat-title {
+    font-family: 'Chomsky', Georgia, serif;
+    font-size: clamp(3.4rem, 9vw, 86px);
+    color: #fff;
+    letter-spacing: 0.01em;
+    line-height: 0.92;
+    font-weight: 400;
+    margin-bottom: 20px;
+}
+.cat-section[data-cat="INTRO"] .cat-subtitle {
+    color: rgba(255,255,255,0.52);
+    font-size: clamp(0.78rem, 1.4vw, 0.9rem);
+    line-height: 1.78;
+    max-width: 36ch;
+    margin-top: 0;
+}
+
+/* ── SECTION HEADERS (non-intro) ──────────────────────────────────── */
+.cat-section-header {
+    margin-bottom: 44px;
+    padding-bottom: 28px;
+    border-bottom: 1px solid var(--sep);
+    position: relative;
+    overflow: hidden;
+}
+/* CSS-only grain texture via SVG noise filter */
+.cat-section-header::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='120'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.72' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='120' filter='url(%23g)' opacity='0.035'/%3E%3C/svg%3E");
+    background-size: 300px 120px;
+    pointer-events: none;
+    z-index: 0;
+}
+.cat-eyebrow, .cat-title, .cat-subtitle { position: relative; z-index: 1; }
+
+.cat-eyebrow {
+    font-family: 'Inter', sans-serif;
+    font-size: clamp(0.65rem, 1.1vw, 0.76rem);
+    font-weight: 700;
+    letter-spacing: 0.26em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0 0 14px 0;
+}
+.cat-title {
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: clamp(2rem, 5.5vw, 3.4rem);
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    margin: 0 0 16px 0;
+    line-height: 1.0;
+    font-weight: 400;
+}
+.cat-subtitle {
+    font-family: 'Inter', sans-serif;
+    font-size: clamp(0.78rem, 1.3vw, 0.86rem);
+    font-weight: 400;
+    color: var(--muted);
+    line-height: 1.78;
+    margin: 0;
+    max-width: 42ch;
+}
+
+/* ── EDITORIAL LIST — strip all card chrome ───────────────────────── */
+.cat-cards {
+    counter-reset: attraction-counter;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Each card becomes a bare list row */
+.attraction-card {
+    counter-increment: attraction-counter;
+    /* reset all box chrome */
+    background: none;
+    border: none;
+    border-bottom: 1px solid var(--sep);
+    border-radius: 0;
+    overflow: visible;
+    box-shadow: none;
+    /* editorial row layout: number gutter + content */
+    display: grid;
+    grid-template-columns: 44px 1fr;
+    grid-template-rows: auto;
+    column-gap: 20px;
+    padding: 36px 0 36px 0;
+    cursor: default;
+    transition: transform 0.3s var(--ease-out), opacity 0.3s ease;
+    position: relative;
+}
+/* top rule on first item */
+.attraction-card:first-child { border-top: 1px solid var(--sep); }
+
+/* Number pseudo-element in col 1 */
+.attraction-card::before {
+    content: counter(attraction-counter, decimal-leading-zero) " /";
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: 0.78rem;
+    color: var(--accent);
+    letter-spacing: 0.08em;
+    line-height: 1;
+    padding-top: 7px; /* optical alignment with card-name cap height */
+    grid-column: 1;
+    grid-row: 1;
+    align-self: start;
+    white-space: nowrap;
+}
+
+/* Hide image wrapper — editorial list has no photos */
+.card-img-wrap { display: none; }
+
+/* Card body fills col 2 */
+.card-body {
+    grid-column: 2;
+    grid-row: 1;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+/* Attraction name — large, Georgia, no background */
+.card-name {
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: clamp(1.35rem, 2.8vw, 1.85rem);
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    margin: 0 0 10px 0;
+    line-height: 1.1;
+    font-weight: 400;
+    /* underline drawn via box-shadow so it doesn't affect layout */
+    text-decoration: none;
+    display: inline-block;
+    transition: color 0.25s var(--ease-out), text-decoration-color 0.25s var(--ease-out);
+    text-decoration-color: transparent;
+    text-decoration-line: underline;
+    text-underline-offset: 4px;
+    text-decoration-thickness: 2px;
+}
+
+/* Description */
+.card-desc {
+    font-family: 'Inter', sans-serif;
+    font-size: clamp(0.78rem, 1.35vw, 0.87rem);
+    font-weight: 400;
+    color: var(--muted);
+    line-height: 1.72;
+    margin: 0 0 16px 0;
+    max-width: 52ch;
+}
+.card-tip-plain {
+    font-family: 'Inter', sans-serif;
+    font-size: clamp(0.78rem, 1.35vw, 0.87rem);
+    font-weight: 400;
+    color: var(--muted);
+    line-height: 1.68;
+    margin: 0 0 14px 0;
+}
+
+/* Subway row — inline, pill badges */
+.card-subway {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 4px;
+    row-gap: 4px;
+}
+.subway-lbl {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-right: 6px;
+    flex-shrink: 0;
+}
+.subway-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    font-weight: 700;
+    font-size: 9.5px;
+    font-family: 'Inter', sans-serif;
+    letter-spacing: 0;
+}
+.subway-station-text {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.72rem;
+    font-weight: 400;
+    color: var(--muted);
+    margin-left: 4px;
+    flex-basis: 100%;
+    margin-top: 2px;
+    line-height: 1.5;
+}
+
+/* ── HOVER STATE — editorial, no box ─────────────────────────────── */
+.attraction-card:hover {
+    transform: translateX(6px);
+    box-shadow: none;
+    border-color: var(--sep);
+}
+.attraction-card:hover .card-name {
+    color: var(--accent-dark);
+    text-decoration-color: var(--accent);
+}
+
+/* Dimmed state (JS-controlled) */
+.attraction-card.dimmed {
+    opacity: 0.3;
+    transform: none !important;
+}
+
+/* ── PIN PHOTO TOOLTIP ────────────────────────────────────────────── */
+.pin-photo-tip {
+    padding: 0 !important;
+    background: none !important;
+    border: none !important;
+    border-radius: 10px !important;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.38), 0 2px 8px rgba(0,0,0,0.22) !important;
+    overflow: hidden !important;
+    pointer-events: none !important;
+}
+.pin-photo-tip::before {
+    display: none !important;
+}
+.pin-photo-tip img {
+    display: block;
+    width: 200px;
+    height: 136px;
+    object-fit: cover;
+    border-radius: 10px;
+}
+
+/* ── MAP PINS ─────────────────────────────────────────────────────── */
+.cat-pin-wrapper { background: transparent !important; border: none !important; }
+.cat-pin {
+    width: 32px; height: 32px;
+    border-radius: 50% 50% 50% 0;
+    transform: rotate(-45deg);
+    border: 2px solid rgba(255,255,255,0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+    transition: opacity 0.4s ease, transform 0.4s ease, box-shadow 0.3s ease;
+}
+.cat-pin span {
+    transform: rotate(45deg);
+    font-size: 12px;
+    font-weight: 700;
+    color: #fff;
+    font-family: 'Inter', sans-serif;
+}
+.cat-pin.highlighted {
+    transform: rotate(-45deg) scale(1.35);
+    border-color: #fff;
+    box-shadow: 0 0 0 3px rgba(255,255,255,0.35), 0 4px 18px rgba(0,0,0,0.6);
+}
+.cat-pin.dimmed {
+    opacity: 0.18;
+    transform: rotate(-45deg) scale(0.8);
+}
+</style>
+
+<style>/* FONT PATCH VISUALIZACION */
+@font-face {
+    font-family: 'Chomsky';
+    src: url('../fonts/Chomsky.otf') format('opentype');
+}
+html, body, #nyc-cat-scroll, .cat-eyebrow, .cat-subtitle, .card-desc, .card-tip, .subway-station-text, .card-meta, .subway-badge {
+    font-family:'Inter', sans-serif!important;
+}
+.cat-title, .card-name {
+    font-family:Georgia, 'Times New Roman', serif!important;
+}
+.cat-section[data-cat="INTRO"] .cat-title {
+    font-family:'Chomsky', Georgia, serif!important;
+}
+</style>
+
+
+<style>/* INTRO RESTORED */
+.cat-section[data-cat="INTRO"]{
+    display:flex!important;
+}
+.cat-section[data-cat="INTRO"] .cat-title{
+    font-family:Georgia, 'Times New Roman', serif!important;
+    font-weight:700!important;
+    letter-spacing:0!important;
+}
+
+.cat-section[data-cat="INTRO"]{
+    background:var(--bg)!important;
+    color:var(--ink)!important;
+}
+.cat-section[data-cat="INTRO"] .cat-section-header{
+    border-bottom:1px solid var(--sep)!important;
+}
+.cat-section[data-cat="INTRO"] .cat-title{
+    color:var(--ink)!important;
+}
+.cat-section[data-cat="INTRO"] .cat-subtitle{
+    color:var(--muted)!important;
+}
+</style>
+
+<style>
+/* Unificar fonts del scrollytelling de transporte con la pagina principal */
+html,
+body,
+#nyc-cat-scroll,
+.cat-eyebrow,
+.cat-subtitle,
+.card-desc,
+.card-tip,
+.card-meta,
+.subway-station-text,
+.subway-badge,
+#cat-map-label{
+    font-family:Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif!important;
+}
+
+.cat-title,
+.card-name,
+.cat-section[data-cat="INTRO"] .cat-title{
+    font-family:Georgia, 'Times New Roman', serif!important;
+    font-weight:700!important;
+    letter-spacing:0!important;
+}
+
+.cat-title{
+    font-size:clamp(2.15rem, 5.4vw, 3.55rem)!important;
+    line-height:.95!important;
+}
+
+.card-name{
+    line-height:1!important;
+    letter-spacing:0!important;
+}
+
+.cat-subtitle{
+    font-size:clamp(.86rem, 1.35vw, .96rem)!important;
+    line-height:1.68!important;
+}
+</style>
+</head>
+<body>
+
+<div id="nyc-cat-scroll">
+    <div id="cat-map-container">
+        <div id="cat-map"></div>
+        <div id="cat-map-label"></div>
+    </div>
+    <div id="cat-scroll-right"></div>
+</div>
+
+<script>
+(function () {
+
+var SUBWAY_STATIONS = [[40.775036,-73.912034,"#FCCC0A"],[40.770258,-73.917843,"#FCCC0A"],[40.766779,-73.921479,"#FCCC0A"],[40.76182,-73.925508,"#FCCC0A"],[40.756804,-73.929575,"#FCCC0A"],[40.752882,-73.932755,"#FCCC0A"],[40.76266,-73.967258,"#FCCC0A"],[40.764811,-73.973347,"#FCCC0A"],[40.764664,-73.980658,"#FCCC0A"],[40.759901,-73.984139,"#FCCC0A"],[40.754672,-73.986754,"#FCCC0A"],[40.749567,-73.98795,"#FCCC0A"],[40.745494,-73.988691,"#FCCC0A"],[40.741303,-73.989344,"#FCCC0A"],[40.735736,-73.990568,"#FCCC0A"],[40.730328,-73.992629,"#FCCC0A"],[40.724329,-73.997702,"#FCCC0A"],[40.719527,-74.001775,"#FCCC0A"],[40.718383,-74.00046,"#FCCC0A"],[40.713282,-74.006978,"#FCCC0A"],[40.710668,-74.011029,"#FCCC0A"],[40.70722,-74.013342,"#FCCC0A"],[40.703087,-74.012994,"#FCCC0A"],[40.6941,-73.991777,"#FCCC0A"],[40.69218,-73.985942,"#FCCC0A"],[40.690635,-73.981824,"#FF6319"],[40.683666,-73.97881,"#FF6319"],[40.677316,-73.98311,"#FCCC0A"],[40.670847,-73.988302,"#FCCC0A"],[40.665414,-73.992872,"#FCCC0A"],[40.660397,-73.998091,"#FCCC0A"],[40.655144,-74.003549,"#FF6319"],[40.648939,-74.010006,"#FCCC0A"],[40.645069,-74.014034,"#FCCC0A"],[40.641362,-74.017881,"#FCCC0A"],[40.634967,-74.023377,"#FCCC0A"],[40.629742,-74.02551,"#FCCC0A"],[40.622687,-74.028398,"#FCCC0A"],[40.616622,-74.030876,"#FCCC0A"],[40.68446,-73.97689,"#FF6319"],[40.67705,-73.972367,"#FF6319"],[40.661614,-73.962246,"#FF6319"],[40.655292,-73.961495,"#FCCC0A"],[40.650527,-73.962982,"#FF6319"],[40.644031,-73.964492,"#FCCC0A"],[40.640927,-73.963891,"#FCCC0A"],[40.635082,-73.962793,"#FF6319"],[40.62927,-73.961639,"#FCCC0A"],[40.625039,-73.960803,"#FCCC0A"],[40.617618,-73.959399,"#FCCC0A"],[40.60867,-73.957734,"#FF6319"],[40.5993,-73.955929,"#FCCC0A"],[40.595246,-73.955161,"#FCCC0A"],[40.586896,-73.954155,"#FF6319"],[40.577621,-73.961376,"#FF6319"],[40.576312,-73.968501,"#FCCC0A"],[40.576127,-73.975939,"#FF6319"],[40.577422,-73.981233,"#FF6319"],[40.646292,-73.994324,"#FF6319"],[40.640914,-73.994304,"#FF6319"],[40.63626,-73.994791,"#FF6319"],[40.631435,-73.995476,"#FF6319"],[40.626472,-73.996895,"#FF6319"],[40.619589,-73.998864,"#FF6319"],[40.613501,-74.00061,"#FF6319"],[40.607954,-74.001736,"#FF6319"],[40.604556,-73.998168,"#FF6319"],[40.601875,-73.993728,"#FF6319"],[40.597704,-73.986829,"#FF6319"],[40.588841,-73.983765,"#FF6319"],[40.635064,-74.011719,"#FCCC0A"],[40.631386,-74.005351,"#FCCC0A"],[40.624842,-73.996353,"#FCCC0A"],[40.620671,-73.990414,"#FCCC0A"],[40.61741,-73.985026,"#FCCC0A"],[40.611815,-73.981848,"#FCCC0A"],[40.603923,-73.980353,"#FCCC0A"],[40.597473,-73.979137,"#FCCC0A"],[40.592721,-73.97823,"#FCCC0A"],[40.700492,-73.828294,"#996633"],[40.697418,-73.836345,"#996633"],[40.695178,-73.84433,"#996633"],[40.693879,-73.851576,"#996633"],[40.692435,-73.86001,"#996633"],[40.691324,-73.867139,"#996633"],[40.689941,-73.87255,"#996633"],[40.683194,-73.873785,"#996633"],[40.68141,-73.880039,"#996633"],[40.679947,-73.884639,"#996633"],[40.678024,-73.891688,"#996633"],[40.676992,-73.898654,"#996633"],[40.679498,-73.904512,"#996633"],[40.682893,-73.910456,"#996633"],[40.68637,-73.916559,"#996633"],[40.68963,-73.92227,"#996633"],[40.693342,-73.928814,"#996633"],[40.697207,-73.935657,"#FF6319"],[40.70026,-73.941126,"#FF6319"],[40.703869,-73.947408,"#FF6319"],[40.70687,-73.953431,"#FF6319"],[40.708359,-73.957757,"#FF6319"],[40.718315,-73.987437,"#FF6319"],[40.72028,-73.993915,"#996633"],[40.718092,-73.999892,"#996633"],[40.713243,-74.003401,"#996633"],[40.710374,-74.007582,"#996633"],[40.706476,-74.011056,"#996633"],[40.711396,-73.889601,"#FF6319"],[40.706186,-73.895877,"#FF6319"],[40.704423,-73.903077,"#FF6319"],[40.702762,-73.90774,"#FF6319"],[40.69943,-73.912385,"#FF6319"],[40.698664,-73.919711,"#FF6319"],[40.697857,-73.927397,"#FF6319"],[40.739777,-74.002578,"#A7A9AC"],[40.737335,-73.996786,"#A7A9AC"],[40.734789,-73.99073,"#A7A9AC"],[40.732849,-73.986122,"#A7A9AC"],[40.730953,-73.981628,"#A7A9AC"],[40.717304,-73.956872,"#A7A9AC"],[40.714063,-73.950275,"#A7A9AC"],[40.714565,-73.944053,"#A7A9AC"],[40.711926,-73.94067,"#A7A9AC"],[40.707739,-73.93985,"#A7A9AC"],[40.706152,-73.933147,"#A7A9AC"],[40.706607,-73.922913,"#A7A9AC"],[40.703811,-73.918425,"#A7A9AC"],[40.699814,-73.911586,"#A7A9AC"],[40.695602,-73.904084,"#A7A9AC"],[40.688764,-73.904046,"#A7A9AC"],[40.682829,-73.905249,"#A7A9AC"],[40.678856,-73.90324,"#A7A9AC"],[40.675345,-73.903097,"#A7A9AC"],[40.669367,-73.901975,"#A7A9AC"],[40.664038,-73.900571,"#A7A9AC"],[40.658733,-73.899232,"#A7A9AC"],[40.650573,-73.899485,"#A7A9AC"],[40.646654,-73.90185,"#A7A9AC"],[40.680596,-73.955827,"#808183"],[40.674772,-73.957624,"#808183"],[40.670343,-73.959245,"#808183"],[40.868072,-73.919899,"#0039A6"],[40.865491,-73.927271,"#0039A6"],[40.859022,-73.93418,"#0039A6"],[40.851695,-73.937969,"#0039A6"],[40.847391,-73.939704,"#0039A6"],[40.840719,-73.939561,"#0039A6"],[40.836013,-73.939892,"#0039A6"],[40.830518,-73.941514,"#0039A6"],[40.824783,-73.944216,"#0039A6"],[40.824783,-73.944216,"#FF6319"],[40.817894,-73.947649,"#0039A6"],[40.811109,-73.952343,"#0039A6"],[40.805085,-73.954882,"#0039A6"],[40.800603,-73.958161,"#0039A6"],[40.796092,-73.961454,"#0039A6"],[40.791642,-73.964696,"#0039A6"],[40.785868,-73.968916,"#0039A6"],[40.781433,-73.972143,"#0039A6"],[40.775594,-73.97641,"#0039A6"],[40.768296,-73.981736,"#0039A6"],[40.762456,-73.985984,"#0039A6"],[40.757308,-73.989735,"#0039A6"],[40.752287,-73.993391,"#0039A6"],[40.745906,-73.998041,"#0039A6"],[40.740893,-74.00169,"#0039A6"],[40.732338,-74.000495,"#0039A6"],[40.732338,-74.000495,"#FF6319"],[40.726227,-74.003739,"#0039A6"],[40.720824,-74.005229,"#0039A6"],[40.714111,-74.008585,"#0039A6"],[40.712582,-74.009781,"#0039A6"],[40.710197,-74.007691,"#0039A6"],[40.699337,-73.990531,"#0039A6"],[40.692338,-73.987342,"#0039A6"],[40.688484,-73.985001,"#0039A6"],[40.686113,-73.973946,"#0039A6"],[40.683263,-73.965838,"#0039A6"],[40.68138,-73.956848,"#0039A6"],[40.680438,-73.950426,"#0039A6"],[40.679921,-73.940858,"#0039A6"],[40.679364,-73.930729,"#0039A6"],[40.678822,-73.920786,"#0039A6"],[40.67834,-73.911946,"#0039A6"],[40.678334,-73.905316,"#0039A6"],[40.674542,-73.896548,"#0039A6"],[40.67271,-73.890358,"#0039A6"],[40.67413,-73.88075,"#0039A6"],[40.675377,-73.872106,"#0039A6"],[40.677044,-73.86505,"#0039A6"],[40.679371,-73.858992,"#0039A6"],[40.679843,-73.85147,"#0039A6"],[40.680429,-73.843853,"#0039A6"],[40.681711,-73.837683,"#0039A6"],[40.684331,-73.832163,"#0039A6"],[40.685951,-73.825798,"#0039A6"],[40.672097,-73.835919,"#0039A6"],[40.668234,-73.834058,"#0039A6"],[40.660476,-73.830301,"#0039A6"],[40.608382,-73.815925,"#0039A6"],[40.588034,-73.813641,"#0039A6"],[40.585307,-73.820558,"#0039A6"],[40.583209,-73.827559,"#0039A6"],[40.580903,-73.835592,"#0039A6"],[40.590927,-73.796924,"#0039A6"],[40.592374,-73.788522,"#0039A6"],[40.592943,-73.776013,"#0039A6"],[40.595398,-73.768175,"#0039A6"],[40.600066,-73.761353,"#0039A6"],[40.603995,-73.755405,"#0039A6"],[40.874811,-73.878855,"#FF6319"],[40.873244,-73.887138,"#FF6319"],[40.866978,-73.893509,"#FF6319"],[40.861296,-73.897749,"#FF6319"],[40.856093,-73.900741,"#FF6319"],[40.85041,-73.905227,"#FF6319"],[40.8459,-73.910136,"#FF6319"],[40.839306,-73.9134,"#FF6319"],[40.833771,-73.91844,"#FF6319"],[40.827905,-73.925651,"#FF6319"],[40.830135,-73.938209,"#FF6319"],[40.754203,-73.942836,"#FF6319"],[40.759145,-73.95326,"#FF6319"],[40.764629,-73.966113,"#FF6319"],[40.763972,-73.97745,"#FF6319"],[40.758663,-73.981329,"#FF6319"],[40.754222,-73.984569,"#FF6319"],[40.749719,-73.987823,"#FF6319"],[40.742878,-73.992821,"#FF6319"],[40.738228,-73.996209,"#FF6319"],[40.725297,-73.996204,"#FF6319"],[40.718267,-73.993753,"#FF6319"],[40.723402,-73.989938,"#FF6319"],[40.718611,-73.988114,"#FF6319"],[40.713715,-73.990173,"#FF6319"],[40.701397,-73.986751,"#FF6319"],[40.686145,-73.990862,"#FF6319"],[40.680303,-73.995048,"#FF6319"],[40.67358,-73.995959,"#FF6319"],[40.670272,-73.989779,"#FF6319"],[40.666271,-73.980305,"#FF6319"],[40.660365,-73.979493,"#FF6319"],[40.650782,-73.975776,"#FF6319"],[40.644041,-73.979678,"#FF6319"],[40.636119,-73.978172,"#FF6319"],[40.629755,-73.976971,"#FF6319"],[40.625322,-73.976127,"#FF6319"],[40.620769,-73.975264,"#FF6319"],[40.61514,-73.974197,"#FF6319"],[40.608944,-73.973022,"#FF6319"],[40.603217,-73.972361,"#FF6319"],[40.596063,-73.973357,"#FF6319"],[40.58962,-73.97425,"#FF6319"],[40.581011,-73.974574,"#FF6319"],[40.712646,-73.783817,"#FF6319"],[40.71047,-73.793604,"#FF6319"],[40.707564,-73.803326,"#FF6319"],[40.70546,-73.810708,"#FF6319"],[40.709179,-73.820574,"#0039A6"],[40.714441,-73.831008,"#0039A6"],[40.718331,-73.837324,"#0039A6"],[40.721691,-73.844521,"#0039A6"],[40.726523,-73.852719,"#FF6319"],[40.729846,-73.861604,"#FF6319"],[40.733106,-73.869229,"#FF6319"],[40.737015,-73.877223,"#FF6319"],[40.742454,-73.882017,"#FF6319"],[40.746644,-73.891338,"#0039A6"],[40.749669,-73.898453,"#FF6319"],[40.752885,-73.906006,"#FF6319"],[40.756312,-73.913333,"#FF6319"],[40.756879,-73.92074,"#FF6319"],[40.752039,-73.928781,"#FF6319"],[40.748973,-73.937243,"#0039A6"],[40.747846,-73.946,"#0039A6"],[40.757552,-73.969055,"#0039A6"],[40.760167,-73.975224,"#0039A6"],[40.762862,-73.981637,"#0039A6"],[40.702147,-73.801109,"#0039A6"],[40.700486,-73.807969,"#0039A6"],[40.702566,-73.816859,"#0039A6"],[40.746554,-73.943832,"#6CBE45"],[40.744065,-73.949724,"#6CBE45"],[40.731352,-73.954449,"#6CBE45"],[40.724635,-73.951277,"#6CBE45"],[40.712792,-73.951418,"#6CBE45"],[40.706092,-73.950308,"#6CBE45"],[40.700377,-73.950234,"#6CBE45"],[40.694568,-73.949046,"#6CBE45"],[40.689627,-73.953522,"#6CBE45"],[40.688873,-73.96007,"#6CBE45"],[40.688089,-73.966839,"#6CBE45"],[40.687119,-73.975375,"#6CBE45"],[40.889248,-73.898583,"#EE352E"],[40.884667,-73.90087,"#EE352E"],[40.878856,-73.904834,"#EE352E"],[40.874561,-73.909831,"#EE352E"],[40.869444,-73.915279,"#EE352E"],[40.864621,-73.918822,"#EE352E"],[40.860531,-73.925536,"#EE352E"],[40.855225,-73.929412,"#EE352E"],[40.849505,-73.933596,"#EE352E"],[40.840556,-73.940133,"#EE352E"],[40.834041,-73.94489,"#EE352E"],[40.826551,-73.95036,"#EE352E"],[40.822008,-73.953676,"#EE352E"],[40.815581,-73.958372,"#EE352E"],[40.807722,-73.96411,"#EE352E"],[40.803967,-73.966847,"#EE352E"],[40.799446,-73.968379,"#EE352E"],[40.793919,-73.972323,"#EE352E"],[40.788644,-73.976218,"#EE352E"],[40.783934,-73.979917,"#EE352E"],[40.778453,-73.98197,"#EE352E"],[40.77344,-73.982209,"#EE352E"],[40.768247,-73.981929,"#EE352E"],[40.761728,-73.983849,"#EE352E"],[40.75529,-73.987495,"#EE352E"],[40.750373,-73.991057,"#EE352E"],[40.747215,-73.993365,"#EE352E"],[40.744081,-73.995657,"#EE352E"],[40.74104,-73.997871,"#EE352E"],[40.737826,-74.000201,"#EE352E"],[40.733422,-74.002906,"#EE352E"],[40.728251,-74.005367,"#EE352E"],[40.722854,-74.006277,"#EE352E"],[40.719318,-74.006886,"#EE352E"],[40.715478,-74.009266,"#EE352E"],[40.711835,-74.012188,"#EE352E"],[40.707513,-74.013783,"#EE352E"],[40.702068,-74.013664,"#EE352E"],[40.713051,-74.008811,"#EE352E"],[40.709416,-74.006571,"#EE352E"],[40.706821,-74.0091,"#EE352E"],[40.697466,-73.993086,"#EE352E"],[40.693219,-73.989998,"#EE352E"],[40.690545,-73.985065,"#EE352E"],[40.688246,-73.980492,"#EE352E"],[40.684359,-73.977666,"#EE352E"],[40.680829,-73.975098,"#EE352E"],[40.675235,-73.971046,"#EE352E"],[40.671987,-73.964375,"#EE352E"],[40.670682,-73.958131,"#EE352E"],[40.669847,-73.950466,"#EE352E"],[40.669399,-73.942161,"#EE352E"],[40.668897,-73.932942,"#EE352E"],[40.664717,-73.92261,"#EE352E"],[40.661453,-73.916327,"#EE352E"],[40.662549,-73.908946,"#EE352E"],[40.663515,-73.902447,"#EE352E"],[40.664635,-73.894895,"#EE352E"],[40.665449,-73.889395,"#EE352E"],[40.666235,-73.884079,"#EE352E"],[40.667883,-73.950683,"#EE352E"],[40.662742,-73.95085,"#EE352E"],[40.656652,-73.9502,"#EE352E"],[40.650843,-73.949575,"#EE352E"],[40.645098,-73.948959,"#EE352E"],[40.639967,-73.948411,"#EE352E"],[40.632836,-73.947642,"#EE352E"],[40.852462,-73.828121,"#00933C"],[40.84681,-73.832569,"#00933C"],[40.843863,-73.836322,"#00933C"],[40.839892,-73.842952,"#00933C"],[40.836488,-73.847036,"#00933C"],[40.834255,-73.851222,"#00933C"],[40.833226,-73.860816,"#00933C"],[40.831509,-73.867618,"#00933C"],[40.829521,-73.874516,"#00933C"],[40.828584,-73.879159,"#00933C"],[40.826525,-73.886283,"#00933C"],[40.820948,-73.890549,"#00933C"],[40.816104,-73.896435,"#00933C"],[40.812118,-73.904098,"#00933C"],[40.808719,-73.907657,"#00933C"],[40.805368,-73.914042,"#00933C"],[40.807566,-73.91924,"#00933C"],[40.810476,-73.926138,"#00933C"],[40.886037,-73.878751,"#00933C"],[40.87975,-73.884655,"#00933C"],[40.873412,-73.890064,"#00933C"],[40.86776,-73.897174,"#00933C"],[40.862803,-73.901034,"#00933C"],[40.858407,-73.903879,"#00933C"],[40.853453,-73.907684,"#00933C"],[40.84848,-73.911794,"#00933C"],[40.844434,-73.914685,"#00933C"],[40.840075,-73.917791,"#00933C"],[40.835537,-73.9214,"#00933C"],[40.827994,-73.925831,"#00933C"],[40.818375,-73.927351,"#00933C"],[40.813224,-73.929849,"#00933C"],[40.804138,-73.937594,"#00933C"],[40.798629,-73.941617,"#00933C"],[40.79502,-73.94425,"#00933C"],[40.7906,-73.947478,"#00933C"],[40.785672,-73.95107,"#00933C"],[40.779492,-73.955589,"#00933C"],[40.77362,-73.959874,"#00933C"],[40.768141,-73.96387,"#00933C"],[40.762526,-73.967967,"#00933C"],[40.757107,-73.97192,"#00933C"],[40.751776,-73.976848,"#00933C"],[40.746081,-73.982076,"#00933C"],[40.74307,-73.984264,"#00933C"],[40.739864,-73.986599,"#00933C"],[40.734673,-73.989951,"#00933C"],[40.730054,-73.99107,"#00933C"],[40.725915,-73.994659,"#00933C"],[40.722301,-73.997141,"#00933C"],[40.718803,-74.000193,"#00933C"],[40.713065,-74.004131,"#00933C"],[40.710368,-74.009509,"#00933C"],[40.707557,-74.011862,"#00933C"],[40.704817,-74.014065,"#00933C"],[40.692404,-73.990151,"#00933C"],[40.903125,-73.85062,"#EE352E"],[40.898379,-73.854376,"#EE352E"],[40.893193,-73.857473,"#EE352E"],[40.888022,-73.860341,"#EE352E"],[40.883895,-73.862633,"#EE352E"],[40.87785,-73.866256,"#EE352E"],[40.871356,-73.867164,"#EE352E"],[40.865462,-73.867352,"#EE352E"],[40.857192,-73.867615,"#EE352E"],[40.848828,-73.868457,"#EE352E"],[40.841894,-73.873488,"#EE352E"],[40.840295,-73.880049,"#EE352E"],[40.837288,-73.887734,"#EE352E"],[40.829993,-73.891865,"#EE352E"],[40.824073,-73.893064,"#EE352E"],[40.822181,-73.896736,"#EE352E"],[40.819585,-73.90177,"#EE352E"],[40.81649,-73.907807,"#EE352E"],[40.816109,-73.917757,"#EE352E"],[40.81841,-73.926718,"#EE352E"],[40.82388,-73.93647,"#EE352E"],[40.820421,-73.936245,"#EE352E"],[40.814229,-73.94077,"#EE352E"],[40.807754,-73.945495,"#EE352E"],[40.802098,-73.949625,"#EE352E"],[40.799075,-73.951822,"#EE352E"],[40.8883,-73.830834,"#00933C"],[40.878663,-73.838591,"#00933C"],[40.869526,-73.846384,"#00933C"],[40.858985,-73.855359,"#00933C"],[40.854364,-73.860495,"#00933C"],[40.7596,-73.83003,"#B933AD"],[40.754622,-73.845625,"#B933AD"],[40.75173,-73.855334,"#B933AD"],[40.749865,-73.8627,"#B933AD"],[40.749145,-73.869527,"#B933AD"],[40.748408,-73.876613,"#B933AD"],[40.747659,-73.883697,"#B933AD"],[40.746848,-73.891394,"#B933AD"],[40.746325,-73.896403,"#B933AD"],[40.74563,-73.902984,"#B933AD"],[40.744149,-73.912549,"#B933AD"],[40.743132,-73.918435,"#B933AD"],[40.743781,-73.924016,"#B933AD"],[40.744587,-73.930997,"#B933AD"],[40.750582,-73.940202,"#FCCC0A"],[40.750582,-73.940202,"#B933AD"],[40.747023,-73.945264,"#B933AD"],[40.742216,-73.948916,"#B933AD"],[40.742626,-73.953581,"#B933AD"],[40.751431,-73.976041,"#B933AD"],[40.753821,-73.981963,"#B933AD"],[40.755477,-73.987691,"#B933AD"],[40.755983,-73.986229,"#808183"],[40.752769,-73.979189,"#808183"],[40.755882,-74.00191,"#B933AD"],[40.784318,-73.947152,"#FCCC0A"],[40.777891,-73.951787,"#FCCC0A"],[40.768799,-73.958424,"#FCCC0A"],[40.643748,-74.073643,"#808183"],[40.636949,-74.074835,"#808183"],[40.627915,-74.075162,"#808183"],[40.621319,-74.071402,"#808183"],[40.603117,-74.084087,"#808183"],[40.596612,-74.087368,"#808183"],[40.588849,-74.09609,"#808183"],[40.583591,-74.103338,"#808183"],[40.578965,-74.109704,"#808183"],[40.57348,-74.11721,"#808183"],[40.56511,-74.12632,"#808183"],[40.5564,-74.136907,"#808183"],[40.551231,-74.151399,"#808183"],[40.544601,-74.16457,"#808183"],[40.54046,-74.178217,"#808183"],[40.533674,-74.191794,"#808183"],[40.525507,-74.200064,"#808183"],[40.52241,-74.217847,"#808183"],[40.519631,-74.229141,"#808183"],[40.512764,-74.251961,"#808183"],[40.516578,-74.242096,"#808183"]];
+
+var SC = {
+    'A':'#0039A6','C':'#0039A6','E':'#0039A6',
+    'B':'#FF6319','D':'#FF6319','F':'#FF6319','M':'#FF6319',
+    'G':'#6CBE45','J':'#996633','Z':'#996633','L':'#A7A9AC',
+    'N':'#FCCC0A','Q':'#FCCC0A','R':'#FCCC0A','W':'#FCCC0A',
+    '1':'#EE352E','2':'#EE352E','3':'#EE352E',
+    '4':'#00933C','5':'#00933C','6':'#00933C',
+    '7':'#B933AD','S':'#808183'
+};
+
+var CARDS = [
+    {name:"Empire State Building",lat:40.7484,lon:-73.9857,color:"#FF4444",cat:"MIRADORES",
+     img:"EmpireState.avif",
+     desc:"El rascacielos más icónico de Nueva York. Subí al piso 86 para vistas 360° impresionantes de toda la ciudad. Una experiencia imperdible.",
+     tip:"💡 Entrada ~$44. Reservar online para evitar colas.",
+     lines:['N','Q','R','W'],station:"34 St-Herald Sq"},
+    {name:"One World Observatory",lat:40.7127,lon:-74.0134,color:"#FF4444",cat:"MIRADORES",
+     img:"OneWorldObservatoy.jpg",
+     desc:"Vista desde el piso 102 del edificio más alto del hemisferio occidental. Panorama único de Manhattan, Brooklyn, New Jersey y más allá.",
+     tip:"💡 Entrada $44. Atardecer = momento ideal.",
+     lines:['E','2','3'],station:"E → World Trade Center, 2/3 → Chambers St"},
+    {name:"Times Square",lat:40.758,lon:-73.9855,color:"#F28C52",cat:"ÍCONOS",
+     img:"TimesSquare.avif",
+     desc:"El cruce más famoso del mundo. Carteles luminosos, Broadway y entretenimiento 24/7. El corazón palpitante de Nueva York que nunca duerme.",
+     tip:"💡 Visitalo de noche para la experiencia completa de luces.",
+     lines:['A','C','E','N','Q','R','W'],station:"Times Sq-42 St"},
+    {name:"Brooklyn Bridge",lat:40.7061,lon:-73.9969,color:"#F28C52",cat:"ÍCONOS",
+     img:"brooklynbridge.avif",
+     desc:"Cruzalo a pie en 30 minutos. Construido en 1883, ofrece vistas épicas al skyline de Manhattan y es uno de los puentes más fotografiados del mundo.",
+     tip:"💡 Cruzalo temprano a la mañana para evitar multitudes.",
+     lines:['4','5','6'],station:"Brooklyn Bridge-City Hall"},
+    {name:"Metropolitan Museum of Art",lat:40.7794,lon:-73.9632,color:"#9B59B6",cat:"MUSEOS",
+     img:"themet.avif",
+     desc:"El museo más grande de EE.UU. con 5.000 años de historia del arte. Más de 2 millones de objetos. No te pierdas las momias egipcias y el templo de Dendur.",
+     tip:"💡 Entrada sugerida $30. Llegar cuando abre para evitar aglomeraciones.",
+     lines:['4','5','6'],station:"86 St (Upper East Side)"},
+    {name:"MoMA",lat:40.7614,lon:-73.9776,color:"#9B59B6",cat:"MUSEOS",
+     img:"MoMa.jpg",
+     desc:"El mejor museo de arte moderno del mundo. Picasso, Warhol, Dalí, Monet y más de 200.000 obras. Una visita obligada para todo amante del arte.",
+     tip:"💡 Entrada $25. Los viernes de 5:30 a 9pm es gratis.",
+     lines:['E','M','B','D','F'],station:"E/M → 5 Av/53 St · B/D/F/M → 47-50 Sts"},
+    {name:"Central Park",lat:40.7851,lon:-73.9683,color:"#27AE60",cat:"NATURALEZA",
+     img:"CentralPark.avif",
+     desc:"843 acres de pulmón verde en el corazón de Manhattan. Bici, remo en el lago, picnics y conciertos gratuitos en verano. El escape perfecto del cemento.",
+     tip:"💡 Gratis todo el año. Alquilá una bici en el parque.",
+     lines:['B','C'],station:"B/C → 72 St, 81 St, 86 St, 96 St"},
+    {name:"High Line",lat:40.748,lon:-74.0048,color:"#27AE60",cat:"NATURALEZA",
+     img:"highline.jpg",
+     desc:"Parque elevado sobre vías de tren abandonadas en Chelsea. Arte público, jardines nativos y vistas al río Hudson. Un proyecto urbano único en el mundo.",
+     tip:"💡 Entrada gratuita. Abre desde las 7am.",
+     lines:['A','C','E'],station:"A/C/E → 14 St · C/E → 23 St"},
+    {name:"Chelsea Market",lat:40.7424,lon:-74.006,color:"#E74C3C",cat:"GASTRONOMÍA",
+     img:"chelseamarket.webp",
+     desc:"Mercado gourmet en una antigua fábrica de galletas Oreo. Food halls con cocinas del mundo, tiendas artesanales y restaurantes de primer nivel.",
+     tip:"💡 Ideal para el almuerzo. Lleno los fines de semana.",
+     lines:['A','C','E','L'],station:"14 St-8 Av"},
+    {name:"Smorgasburg",lat:40.7223,lon:-73.9576,color:"#E74C3C",cat:"GASTRONOMÍA",
+     img:"smorgasburg.webp",
+     desc:"El mercado de comida al aire libre más grande de EE.UU. Más de 100 vendedores locales cada sábado en Williamsburg. Donde nacieron tendencias gastronómicas.",
+     tip:"💡 Solo sábados 11am-6pm (abril-oct). Entrada gratuita.",
+     lines:['L'],station:"Bedford Av"},
+    {name:"9/11 Memorial & Museum",lat:40.7115,lon:-74.013,color:"#5D6D7E",cat:"MEMORIALES",
+     img:"911memorial.avif",
+     desc:"Memorial conmovedor en el sitio de las Torres Gemelas. Dos piscinas reflectantes donde estaban las torres, rodeadas de los nombres de las víctimas.",
+     tip:"💡 Pools exteriores gratis. Museo $33, reservar online.",
+     lines:['E','2','3'],station:"E → World Trade Center · 2/3 → Chambers St"},
+    {name:"DUMBO",lat:40.7033,lon:-73.9881,color:"#E67E22",cat:"BARRIOS",
+     img:"dumbo.png",
+     desc:"El barrio más fotogénico de Brooklyn. La vista del puente entre Washington St y Water St es una de las más icónicas de NYC. Galerías, cafés y tiendas de diseño.",
+     tip:"💡 La foto icónica: Washington St con el puente al fondo.",
+     lines:['A','C','F'],station:"A/C → High St · F → York St"},
+    {name:"Little Italy & Chinatown",lat:40.7187,lon:-73.9973,color:"#E67E22",cat:"BARRIOS",
+     img:"littleitaly.avif",
+     desc:"Dos barrios históricos de inmigrantes separados por unas pocas cuadras. Comida increíble, cultura auténtica y una ventana al pasado de Nueva York.",
+     tip:"💡 Probá los cannoli en Ferrara Bakery (desde 1892).",
+     lines:['J','Z','N','Q','R','6'],station:"Canal St"},
+    {name:"Coney Island",lat:40.5755,lon:-73.9707,color:"#3498DB",cat:"ENTRETENIMIENTO",
+     img:"coneyisland.avif",
+     desc:"Parque de diversiones histórico frente al Atlántico. Luna Park, playa, el hot dog original de Nathan's y el famoso Cyclone, una montaña rusa de 1927.",
+     tip:"💡 Gratis entrar a la playa. Rides desde $6 c/u.",
+     lines:['D','F','N','Q'],station:"Coney Island-Stillwell Av"},
+    {name:"Yankee Stadium",lat:40.8296,lon:-73.9262,color:"#1A5276",cat:"DEPORTE",
+     img:"yankeestadium.avif",
+     desc:"El templo del béisbol americano. Hogar de los New York Yankees, el equipo con más campeonatos de la MLB. Vivir un partido es una experiencia cultural única.",
+     tip:"💡 Tours disponibles. Partidos desde $15. Temporada: abril-oct.",
+     lines:['4','B','D'],station:"161 St-Yankee Stadium"},
+    {name:"SoHo Galleries",lat:40.7233,lon:-74.003,color:"#8E44AD",cat:"CULTURA",
+     img:"sohogalleries.jpg",
+     desc:"El distrito del arte y diseño de NYC. Galerías de clase mundial, boutiques de diseñadores emergentes y la arquitectura de hierro fundido más bella de la ciudad.",
+     tip:"💡 Primer jueves del mes: galerías abiertas hasta tarde, gratis.",
+     lines:['N','Q','R','W','C','E'],station:"N/Q/R/W → Prince St · C/E → Spring St"}
+];
+
+var CAT_META = {
+    'INTRO':{label:'NYC',title:'Aprender a moverse por la ciudad',sub:'Ya estás en Nueva York. Ahora el mapa empieza a ordenar el viaje: líneas, estaciones y barrios para entender cómo recorrer la ciudad.',color:'#3ED6D0'},
+    'MIRADORES':{label:'MIRADORES',title:'Ver la ciudad desde arriba',sub:'Nueva York se entiende mejor desde las alturas. Dos observatorios icónicos, dos perspectivas únicas sobre el skyline más famoso del mundo.',color:'#FF4444'},
+    'ÍCONOS':{label:'ÍCONOS',title:'Los íconos de Nueva York',sub:'Algunos lugares son tan Nueva York que se volvieron universales. No hace falta haberlos visitado para reconocerlos — pero vale la pena hacerlo en persona.',color:'#F28C52'},
+    'MUSEOS':{label:'MUSEOS',title:'Arte e historia en un lugar',sub:'Nueva York tiene algunos de los museos más importantes del mundo. El Met y el MoMA solos justifican el viaje.',color:'#9B59B6'},
+    'NATURALEZA':{label:'NATURALEZA',title:'Verde en medio del cemento',sub:'Incluso en la ciudad más densa de EE.UU., la naturaleza se abre paso. Central Park y la High Line son dos obras maestras del diseño urbano.',color:'#27AE60'},
+    'GASTRONOMÍA':{label:'GASTRONOMÍA',title:'Comer en Nueva York',sub:'NYC es una de las capitales gastronómicas del mundo. Desde mercados callejeros hasta experiencias únicas que no existen en ningún otro lugar.',color:'#E74C3C'},
+    'MEMORIALES':{label:'MEMORIALES',title:'Memoria y duelo',sub:'El 11 de septiembre cambió a Nueva York para siempre. El memorial en el sitio del World Trade Center es un lugar donde la ciudad se reconoce a sí misma.',color:'#5D6D7E'},
+    'BARRIOS':{label:'BARRIOS',title:'Barrios con historia',sub:'Nueva York es en realidad cientos de ciudades dentro de una. Cada barrio tiene su identidad, su historia y su comida.',color:'#E67E22'},
+    'ENTRETENIMIENTO':{label:'ENTRETENIMIENTO',title:'Diversión sin fin',sub:'Desde Broadway hasta una playa retro en Brooklyn, la ciudad ofrece entretenimiento para todos los gustos y presupuestos.',color:'#3498DB'},
+    'DEPORTE':{label:'DEPORTE',title:'Deportes en la Gran Manzana',sub:'Nueva York es una ciudad de equipos apasionados. Un partido de los Yankees es una experiencia cultural que va más allá del béisbol.',color:'#1A5276'},
+    'CULTURA':{label:'CULTURA',title:'Arte y diseño',sub:'SoHo es el barrio donde la cultura visual de Nueva York se expresa más libremente. Galerías, diseño y arquitectura del siglo XIX en perfecta armonía.',color:'#8E44AD'}
+};
+
+var CAT_ORDER = ['INTRO','MIRADORES','ÍCONOS','MUSEOS','NATURALEZA','GASTRONOMÍA','MEMORIALES','BARRIOS','ENTRETENIMIENTO','DEPORTE','CULTURA'];
+
+// ── HTML BUILDERS ─────────────────────────────────────────────────────
+function mkBadge(letter) {
+    var bg = SC[letter] || '#808183';
+    var col = (bg === '#FCCC0A') ? '#000' : '#fff';
+    return '<span class="subway-badge" style="background:' + bg + ';color:' + col + ';">' + letter + '</span>';
+}
+
+function mkCard(pt, idx) {
+    return '<div class="attraction-card" data-index="' + idx + '" data-lat="' + pt.lat + '" data-lon="' + pt.lon + '">' +
+        '<div class="card-img-wrap">' +
+            '<img src="' + pt.img + '" alt="' + pt.name + '" loading="lazy">' +
+            '<span class="card-cat-badge" style="background:' + pt.color + ';">' + pt.cat + '</span>' +
+        '</div>' +
+        '<div class="card-body">' +
+            '<h3 class="card-name">' + pt.name + '</h3>' +
+            '<p class="card-desc">' + pt.desc + ' ' + pt.tip.replace(/[\u{1F300}-\u{1FAFF}]|[\u{2600}-\u{27BF}][\uFE0F]?/gu, '').trim() + '</p>' +
+            '<div class="card-subway"><span class="subway-lbl">CÓMO LLEGAR:</span>' +
+                pt.lines.map(mkBadge).join('') +
+                '<span class="subway-station-text">' + pt.station + '</span>' +
+            '</div>' +
+        '</div>' +
+    '</div>';
+}
+
+function mkSection(catKey) {
+    var m = CAT_META[catKey];
+    var pts = CARDS.filter(function(p){ return p.cat === catKey; });
+    var cardsHtml = pts.length
+        ? '<div class="cat-cards">' + pts.map(function(p){ return mkCard(p, CARDS.indexOf(p)); }).join('') + '</div>'
+        : '';
+    return '<div class="cat-section" data-cat="' + catKey + '">' +
+        '<div class="cat-section-header">' +
+            '<p class="cat-eyebrow">' + m.label + '</p>' +
+            '<h2 class="cat-title">' + m.title + '</h2>' +
+            '<p class="cat-subtitle">' + m.sub + '</p>' +
+        '</div>' + cardsHtml +
+    '</div>';
+}
+
+document.getElementById('cat-scroll-right').innerHTML = CAT_ORDER.map(mkSection).join('');
+
+// ── MAP ───────────────────────────────────────────────────────────────
+var mapInstance = null;
+var catLayers = {};
+var catPins = {};
+var currentCat = null;
+var pRM = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+function initMap() {
+    mapInstance = L.map('cat-map', {
+        zoomControl: false,
+        attributionControl: false,
+        scrollWheelZoom: false
+    }).setView([40.730, -73.990], 11);
+
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+        maxZoom: 19
+    }).addTo(mapInstance);
+
+    L.control.zoom({ position: 'bottomright' }).addTo(mapInstance);
+
+    // Subway stations layer (always visible)
+    var subLayer = L.layerGroup().addTo(mapInstance);
+
+    // Draw subway lines as thin polylines, segmented by color.
+    // Split into a new segment when consecutive same-color stations are far apart
+    // (signals a branch gap rather than a continuous route).
+    var LINE_GAP_THRESHOLD = 0.028; // ~3 km in degrees
+    var lineGroups = {};
+    SUBWAY_STATIONS.forEach(function(s) {
+        if (!lineGroups[s[2]]) lineGroups[s[2]] = [];
+        lineGroups[s[2]].push([s[0], s[1]]);
+    });
+    Object.keys(lineGroups).forEach(function(color) {
+        var pts = lineGroups[color];
+        var segment = [pts[0]];
+        for (var i = 1; i < pts.length; i++) {
+            var dlat = pts[i][0] - pts[i-1][0];
+            var dlon = pts[i][1] - pts[i-1][1];
+            var dist = Math.sqrt(dlat*dlat + dlon*dlon);
+            if (dist > LINE_GAP_THRESHOLD) {
+                // gap detected — flush current segment and start fresh
+                if (segment.length > 1) {
+                    L.polyline(segment, {
+                        color: color, weight: 2, opacity: 0.45,
+                        smoothFactor: 1.2, lineCap: 'round', lineJoin: 'round'
+                    }).addTo(subLayer);
+                }
+                segment = [pts[i]];
+            } else {
+                segment.push(pts[i]);
+            }
+        }
+        if (segment.length > 1) {
+            L.polyline(segment, {
+                color: color, weight: 2, opacity: 0.45,
+                smoothFactor: 1.2, lineCap: 'round', lineJoin: 'round'
+            }).addTo(subLayer);
+        }
+    });
+
+    SUBWAY_STATIONS.forEach(function(s) {
+        L.circleMarker([s[0], s[1]], {
+            radius: 3,
+            color: 'rgba(255,255,255,0.45)',
+            fillColor: s[2],
+            fillOpacity: 0.8,
+            weight: 1.5
+        }).addTo(subLayer);
+    });
+
+    // Category layers
+    CAT_ORDER.forEach(function(cat) {
+        if (cat === 'INTRO') return;
+        catLayers[cat] = L.layerGroup();
+        catPins[cat] = [];
+    });
+    CARDS.forEach(function(pt, idx) {
+        if (!catLayers[pt.cat]) return;
+
+        // Find the 2 nearest subway stations and draw dotted connector lines
+        var sorted = SUBWAY_STATIONS.slice().sort(function(a, b) {
+            var da = (a[0]-pt.lat)*(a[0]-pt.lat) + (a[1]-pt.lon)*(a[1]-pt.lon);
+            var db = (b[0]-pt.lat)*(b[0]-pt.lat) + (b[1]-pt.lon)*(b[1]-pt.lon);
+            return da - db;
+        });
+        sorted.slice(0, 2).forEach(function(s) {
+            catLayers[pt.cat].addLayer(L.polyline(
+                [[s[0], s[1]], [pt.lat, pt.lon]],
+                { color: '#FF003C', weight: 2.5, opacity: 1,
+                  dashArray: '4 7', lineCap: 'round' }
+            ));
+        });
+
+        var iconHtml = '<div class="cat-pin" style="background:' + pt.color + ';" data-idx="' + idx + '"><span>' + pt.name.charAt(0) + '</span></div>';
+        var icon = L.divIcon({ html: iconHtml, iconSize: [32,32], iconAnchor: [16,32], className: 'cat-pin-wrapper' });
+        var marker = L.marker([pt.lat, pt.lon], { icon: icon })
+            .bindTooltip('<img src="' + pt.img + '" alt="' + pt.name + '">', {
+                direction: 'top', offset: [0, -38],
+                className: 'pin-photo-tip'
+            });
+        catLayers[pt.cat].addLayer(marker);
+        catPins[pt.cat].push({ marker: marker, index: idx });
+    });
+
+    setupObserver();
+}
+
+function showCategory(cat) {
+    if (currentCat === cat) return;
+    if (currentCat && currentCat !== 'INTRO' && catLayers[currentCat]) {
+        catLayers[currentCat].removeFrom(mapInstance);
+    }
+    currentCat = cat;
+    var lbl = document.getElementById('cat-map-label');
+    var m = CAT_META[cat];
+    if (cat === 'INTRO') {
+        if (lbl) { lbl.textContent = 'RED DE SUBTE — NYC'; lbl.style.opacity = '1'; }
+        if (pRM) mapInstance.setView([40.730,-73.990],11);
+        else mapInstance.flyTo([40.730,-73.990],11,{duration:1.6,easeLinearity:0.1});
+        return;
+    }
+    if (!catLayers[cat]) return;
+    catLayers[cat].addTo(mapInstance);
+    if (lbl && m) { lbl.textContent = m.label; lbl.style.opacity = '1'; }
+    var pts = catPins[cat];
+    if (!pts.length) return;
+    if (pts.length === 1) {
+        var d = CARDS[pts[0].index];
+        if (pRM) mapInstance.setView([d.lat,d.lon],14);
+        else mapInstance.flyTo([d.lat,d.lon],14,{duration:1.6,easeLinearity:0.1});
+    } else {
+        var coords = pts.map(function(p){ var d=CARDS[p.index]; return [d.lat,d.lon]; });
+        var bounds = L.latLngBounds(coords);
+        if (pRM) mapInstance.fitBounds(bounds.pad(0.4));
+        else mapInstance.flyToBounds(bounds.pad(0.4),{duration:1.6,easeLinearity:0.1});
+    }
+}
+
+function highlightPin(idx) {
+    if (!currentCat || !catPins[currentCat]) return;
+    catPins[currentCat].forEach(function(item) {
+        var icon = item.marker._icon;
+        if (!icon) return;
+        var pin = icon.querySelector('.cat-pin');
+        if (!pin) return;
+        if (item.index === idx) { pin.classList.add('highlighted'); pin.classList.remove('dimmed'); }
+        else { pin.classList.add('dimmed'); pin.classList.remove('highlighted'); }
+    });
+}
+
+function resetPins() {
+    if (!currentCat || !catPins[currentCat]) return;
+    catPins[currentCat].forEach(function(item) {
+        var icon = item.marker._icon;
+        if (!icon) return;
+        var pin = icon.querySelector('.cat-pin');
+        if (pin) pin.classList.remove('highlighted','dimmed');
+    });
+}
+
+function setupObserver() {
+    var sections = document.querySelectorAll('.cat-section');
+    var observer = new IntersectionObserver(function(entries) {
+        entries.forEach(function(entry) {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+                showCategory(entry.target.getAttribute('data-cat'));
+            }
+        });
+    }, { threshold: 0.25, rootMargin: '0px 0px -80px 0px' });
+    sections.forEach(function(s){ observer.observe(s); });
+
+    document.querySelectorAll('.attraction-card').forEach(function(card) {
+        var idx = parseInt(card.getAttribute('data-index'));
+        card.addEventListener('mouseenter', function(){ highlightPin(idx); });
+        card.addEventListener('mouseleave', resetPins);
+    });
+}
+
+window.addEventListener('load', initMap);
+
+})();
+</script>
+</body>
+</html>

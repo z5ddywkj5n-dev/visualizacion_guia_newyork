@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="es">
+
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+     <title>7 dias en Nueva York</title>
+    <link rel="stylesheet" href="style.css">
+        
+</head>
+
+<body>
+
+    <audio id="introMusic">
+
+        <source
+            src="music/empire-state-of-mind.m4a"
+            type="audio/mp4">
+        
+    </audio>
+
+    
+    <section class="intro">
+
+        <div class="intro-circle" id="introCircle"></div>
+        <div id="startIntro" class="start-intro">
+            Click para comenzar
+        </div>
+    
+        <div class="intro-stage">
+    
+            <h1 class="intro-title" id="introTitle">
+                NEW YORK
+            </h1>
+    
+        </div>
+    
+    </section>
+
+    <section class="hero">
+        <div class="skyline-layer"></div>
+
+        <div class="hero-content">
+
+            <div class="eyebrow">
+            Guia interactiva para tu proximo viaje a Nueva York
+        </div>
+
+        <h1 class="title">
+            7 Días en <br>
+            <span class="nyt">Nueva York</span>
+        </h1>
+
+        <p class="subtitle">
+            Una guía interactiva de estilo editorial para planificar tu viaje,
+             comprender el proceso de visa y descubrir qué hacer de día 
+             y de noche en la ciudad de Nueva York.
+        </p>
+        
+
+    
+    </div>
+
+    <div class="scroll">
+        Deslizá para comenzar
+    </div>
+</section>
+
+
+
+<section class="travel-info">
+
+    <div class="section-label">
+        ANTES DE VIAJAR
+    </div>
+
+    <h2 class="travel-title">
+        Tu viaje comienza acá
+    </h2>
+
+    <p class="travel-text">
+        Antes de organizar tu itinerario, es importante conocer los requisitos
+        de ingreso, elegir la mejor época para viajar y encontrar la zona ideal
+        para alojarte.
+    </p>
+
+    <div class="polaroid-grid">
+
+        <a href="#visa" class="polaroid">
+    
+            <img src="visa argentinos.avif">
+    
+            <div class="polaroid-title">
+                VISA
+            </div>
+    
+        </a>
+    
+        <a href="#clima" class="polaroid">
+    
+            <img src="polaroid clima.jpg">
+    
+            <div class="polaroid-title">
+                 CLIMA
+            </div>
+    
+        </a>
+    
+        <a href="#alojamiento" class="polaroid">
+    
+            <img src="aloja.jpg">
+    
+            <div class="polaroid-title">
+                 ALOJAMIENTO
+            </div>
+    
+        </a>
+    
+    </div>
+</section>
+
+
+<!-- VISA -->
+
+<section class="preview" id="visa">
+
+    <h2>
+        ¿Necesitás una VISA?
+    </h2>
+
+    <p>
+        Antes de planificar tu viaje, verificá si necesitás visa para ingresar a Estados Unidos.
+    </p>
+
+    <div class="visa-selector">
+
+        <div class="visa-option"
+             onclick="mostrarVisa(false)">
+    
+            <h3>No necesito visa</h3>
+    
+            <p>
+                Tengo ciudadanía de un país incluido en el Visa Waiver Program.
+            </p>
+    
+        </div>
+    
+        <div class="visa-option"
+             onclick="mostrarVisa(true)">
+    
+            <h3>Necesito visa</h3>
+    
+            <p>
+                Necesito realizar el trámite completo para obtener una visa B1/B2.
+            </p>
+    
+        </div>
+    
+    </div>
+
+    <div id="resultado"></div>
+
+    <div id="graficoVisa" style="display:none;">
+
+         <div class="visa-progress">
+        
+            <div class="progress-text">
+                    0 de 6 pasos completados
+            </div>
+        
+            <div class="visa-steps">
+
+                <div class="step" onclick="togglePaso(1)">
+                    <div class="circle"
+                    id="c1"
+                    data-info="VISA B1/B2 • Costo USD 185 • Tiempo estimado 1 a 2 meses • Turismo y negocios">
+                        01
+                    </div>
+                    <h4>Visa</h4>
+                </div>
+                
+                <div class="arrow"></div>
+            
+                <div class="step" onclick="togglePaso(2)">
+                    <div class="circle"
+                    id="c2"
+                    data-info="DS-160 • Formulario obligatorio • Completar online • 30 a 45 minutos">
+                        02
+                    </div>
+                    <h4>DS-160</h4>
+                </div>
+                
+                <div class="arrow"></div>
+                
+                <div class="step" onclick="togglePaso(3)">
+                    <div class="circle"
+                    id="c3"
+                    data-info="MRV FEE • Tasa consular • USD 185 • Requisito previo para la entrevista">
+                        03
+                    </div>
+                    <h4>Pago</h4>
+                </div>
+                
+                <div class="arrow"></div>
+                
+                <div class="step" onclick="togglePaso(4)">
+                    <div class="circle"
+                    id="c4"
+                    data-info="ENTREVISTA • Reserva online • Disponibilidad variable según temporada">
+                        04
+                    </div>
+                    <h4>Turno</h4>
+                </div>
+                
+                <div class="arrow"></div>
+                
+                <div class="step" onclick="togglePaso(5)">
+                    <div class="circle"
+                    id="c5"
+                    data-info="DOCUMENTACIÓN • Pasaporte vigente • DS-160 confirmado • Comprobante de pago">
+                        05
+                    </div>
+                    <h4>Docs</h4>
+                </div>
+                
+                <div class="arrow"></div>
+                
+                <div class="step" onclick="togglePaso(6)">
+                    <div class="circle"
+                    id="c6"
+                    data-info="EMBAJADA DE EE.UU. • Entrevista presencial • Aprobación final del trámite">
+                        06
+                    </div>
+                    <h4>Entrevista</h4>
+                </div>
+      
+                    <div class="arrow">→</div>
+            
+                    <div class="nyc">
+
+                        <img
+                            id="statue"
+                            src="estatua.jpg"
+                            width="120">
+                    
+                        <span>Todo listo</span>
+                    
+                    </div>
+            
+                </div>
+            
+            
+            
+            </div>
+             
+
+    </div>
+
+</section>
+
+
+<!-- CLIMA -->
+
+<section class="preview" id="clima">
+
+    <h2>
+        ¿Cuál es la mejor época para viajar?
+    </h2>
+
+    <p>
+        Nueva York tiene estaciones muy marcadas. Dependiendo de la época del año, la experiencia puede cambiar por completo en cuanto a temperatura, cantidad de turistas y actividades disponibles.
+    </p>
+
+    <!-- ACÁ VA EL GRÁFICO DE CLIMA -->
+
+</section>
+
+<!-- ALOJAMIENTO -->
+
+<section class="preview" id="alojamiento">
+
+    <h2>
+        ¿Dónde conviene alojarse?
+    </h2>
+
+    <p>
+        Elegir bien el barrio puede ayudarte a ahorrar tiempo en transporte y aprovechar mejor tu estadía. Algunas zonas ofrecen mejor conectividad mientras que otras tienen precios más accesibles.
+    </p>
+
+    <!-- ACÁ VA EL GRÁFICO DE AIRBNB -->
+
+</section>
+<script src="script.js"></script>
+
+</body>
+</html>
+

@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="es">
+
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+     <title>5 dias en Nueva York</title>
+    <link rel="stylesheet" href="style.css?v=intro-visible-audio-guard-20260623">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
+        
+</head>
+
+<body>
+
+    <audio id="introMusic">
+
+        <source
+            src="music/empire-state-of-mind.m4a"
+            type="audio/mp4">
+        
+    </audio>
+
+    <audio id="hamiltonMusic" preload="auto">
+        <source src="hamilton-scroll.mp4" type="audio/mp4">
+    </audio>
+
+    
+    <section class="intro" id="introSequence">
+
+        <div class="intro-grain"></div>
+        <div class="intro-frame"></div>
+        <div class="intro-circle" id="introCircle"></div>
+
+        <div class="intro-orbit" id="introOrbit">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+
+        <div id="startIntro" class="start-intro">
+            Click para comenzar
+        </div>
+    
+        <div class="intro-stage">
+    
+            <h1 class="intro-title" id="introTitle">
+                NEW YORK
+            </h1>
+    
+        </div>
+    
+    </section>
+
+    <section class="hero">
+        <div class="skyline-layer"></div>
+
+        <div class="hero-content">
+
+            <div class="eyebrow">
+            Guia interactiva para tu proximo viaje a Nueva York
+        </div>
+
+        <h1 class="title">
+            5 Días en <br>
+            <span class="nyt">Nueva York</span>
+        </h1>
+
+        <p class="subtitle">
+            Una guía interactiva de estilo editorial para planificar tu viaje,
+             comprender el proceso de visa y descubrir qué hacer de día 
+             y de noche en la ciudad de Nueva York.
+        </p>
+        
+
+    
+    </div>
+
+    <div class="scroll">
+        Deslizá para comenzar
+    </div>
+</section>
+
+
+
+<section class="travel-info" id="antes-viajar">
+
+    <div class="travel-sticky">
+
+    <div class="section-label">
+        ANTES DE VIAJAR
+    </div>
+
+    <h2 class="travel-title">
+        Tu viaje comienza acá
+    </h2>
+
+    <p class="travel-text">
+        Antes de organizar tu itinerario, es importante conocer los requisitos
+        de ingreso, elegir la mejor época para viajar y encontrar la zona ideal
+        para alojarte.
+    </p>
+
+    <div class="polaroid-grid">
+
+        <article class="polaroid">
+    
+            <img src="visa argentinos.avif">
+    
+            <div class="polaroid-title">
+                VISA
+            </div>
+
+            <div class="polaroid-handwriting">visa notes - jfk</div>
+    
+        </article>
+    
+        <article class="polaroid">
+    
+            <img src="polaroid clima.jpg">
+    
+            <div class="polaroid-title">
+                 CLIMA
+            </div>
+
+            <div class="polaroid-handwriting">spring / fall</div>
+    
+        </article>
+    
+        <article class="polaroid">
+    
+            <img src="aloja.jpg">
+    
+            <div class="polaroid-title">
+                 ALOJAMIENTO
+            </div>
+
+            <div class="polaroid-handwriting">where to stay</div>
+    
+        </article>
+    
+    </div>
+
+    </div>
+</section>
+
+
+
+<!-- TRANSICION A VISA -->
+
+<section class="visa-transition visa-strike-transition" id="visa-transition" aria-label="Transición hacia visa">
+    <div class="visa-strike-sticky">
+        <div class="visa-strike-frame">
+            <h2 class="strike-main-title">Permiso de entrada</h2>
+            <p>Visa, pasaporte, permiso de entrada. Antes de la ciudad, el primer filtro.</p>
+            <div class="strike-stamp" aria-hidden="true">
+                <span>CHECK</span>
+                <strong>B1/B2</strong>
+                <small>BEFORE TRAVEL</small>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- VISA -->
+
+<section class="preview" id="visa">
+
+
+    <div class="passport-stamp-bg" aria-hidden="true">
+        <div class="passport-stamp stamp-one">
+            <span class="stamp-top">United States</span>
+            <strong>JFK</strong>
+            <span class="stamp-date">09 JUN 2026</span>
+            <span class="stamp-bottom">Admitted NYC</span>
+        </div>
+        <div class="passport-stamp stamp-two">
+            <span class="stamp-top">Visitor Visa</span>
+            <strong>B1/B2</strong>
+            <span class="stamp-date">ENTRY</span>
+            <span class="stamp-bottom">New York</span>
+        </div>
+        <div class="passport-stamp stamp-three">
+            <span class="stamp-top">Passport Control</span>
+            <strong>ESTA</strong>
+            <span class="stamp-date">APPROVED</span>
+            <span class="stamp-bottom">USA</span>
+        </div>
+    </div>
+
+    <h2>
+        ¿Necesitás una VISA?
+    </h2>
+
+    <p>
+        Antes de planificar tu viaje, verificá si necesitás visa para ingresar a Estados Unidos.
+    </p>
+
+    <div class="visa-signpost" id="visaSignpost">
+
+        <div class="signpost-pole">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+
+        <button class="street-sign street-sign-left" type="button" onclick="elegirVisa(false)">
+            <span>NO NECESITO</span>
+            <strong>VISA</strong>
+            <small>Visa Waiver / ESTA</small>
+        </button>
+
+        <button class="street-sign street-sign-right" type="button" onclick="elegirVisa(true)">
+            <span>NECESITO</span>
+            <strong>VISA</strong>
+            <small>Proceso B1/B2</small>
+        </button>
+
+        <div class="walk-signal" aria-hidden="true">
+            <span></span>
+        </div>
+
+    </div>
+
+    <div id="resultado"></div>
+
+    <div id="graficoVisa" style="display:none;">
+
+         <div class="visa-progress">
+        
+            <div class="progress-text">
+                    0 de 6 pasos completados
+            </div>
+        
+            <div class="visa-steps">
+
+                <div class="step" onclick="togglePaso(1)">
+                    <div class="circle"
+                    id="c1"
+                    data-info="VISA B1/B2 • Costo USD 185 • Tiempo estimado 1 a 2 meses • Turismo y negocios">
+                        01
+                    </div>
+                    <h4>Visa</h4>
+                    <div class="visa-tooltip"><span class="tooltip-kicker">Paso 01</span><strong>Tipo de visa</strong><p>Para turismo desde Argentina normalmente se solicita la visa B1/B2. Conviene verificar requisitos antes de comprar pasajes.</p><a href="https://travel.state.gov/content/travel/en/us-visas/tourism-visit/visitor.html" target="_blank" rel="noopener">Ver sitio oficial</a></div>
+                </div>
+                
+                <div class="arrow"></div>
+            
+                <div class="step" onclick="togglePaso(2)">
+                    <div class="circle"
+                    id="c2"
+                    data-info="DS-160 • Formulario obligatorio • Completar online • 30 a 45 minutos">
+                        02
+                    </div>
+                    <h4>DS-160</h4>
+                    <div class="visa-tooltip"><span class="tooltip-kicker">Paso 02</span><strong>Formulario DS-160</strong><p>Es el formulario online obligatorio. Al terminar, guardá la confirmación con código de barras.</p><a href="https://ceac.state.gov/genniv/" target="_blank" rel="noopener">Completar DS-160</a></div>
+                </div>
+                
+                <div class="arrow"></div>
+                
+                <div class="step" onclick="togglePaso(3)">
+                    <div class="circle"
+                    id="c3"
+                    data-info="MRV FEE • Tasa consular • USD 185 • Requisito previo para la entrevista">
+                        03
+                    </div>
+                    <h4>Pago</h4>
+                    <div class="visa-tooltip"><span class="tooltip-kicker">Paso 03</span><strong>Pago MRV</strong><p>El arancel consular habilita la reserva del turno. Revisá medios de pago y vigencia antes de avanzar.</p><a href="https://www.ustraveldocs.com/ar/ar-niv-paymentinfo.asp" target="_blank" rel="noopener">Información de pago</a></div>
+                </div>
+                
+                <div class="arrow"></div>
+                
+                <div class="step" onclick="togglePaso(4)">
+                    <div class="circle"
+                    id="c4"
+                    data-info="ENTREVISTA • Reserva online • Disponibilidad variable según temporada">
+                        04
+                    </div>
+                    <h4>Turno</h4>
+                    <div class="visa-tooltip"><span class="tooltip-kicker">Paso 04</span><strong>Reservar turno</strong><p>Se agenda online. La disponibilidad puede cambiar, así que conviene revisar cancelaciones y nuevas fechas.</p><a href="https://www.ustraveldocs.com/ar/" target="_blank" rel="noopener">Agendar turno</a></div>
+                </div>
+                
+                <div class="arrow"></div>
+                
+                <div class="step" onclick="togglePaso(5)">
+                    <div class="circle"
+                    id="c5"
+                    data-info="DOCUMENTACIÓN • Pasaporte vigente • DS-160 confirmado • Comprobante de pago">
+                        05
+                    </div>
+                    <h4>Docs</h4>
+                    <div class="visa-tooltip"><span class="tooltip-kicker">Paso 05</span><strong>Documentación</strong><p>Prepará pasaporte vigente, confirmación DS-160, comprobante de pago y pruebas de vínculos o solvencia.</p><a href="https://ar.usembassy.gov/es/visas-es/" target="_blank" rel="noopener">Ver documentación</a></div>
+                </div>
+                
+                <div class="arrow"></div>
+                
+                <div class="step" onclick="togglePaso(6)">
+                    <div class="circle"
+                    id="c6"
+                    data-info="EMBAJADA DE EE.UU. • Entrevista presencial • Aprobación final del trámite">
+                        06
+                    </div>
+                    <h4>Entrevista</h4>
+                    <div class="visa-tooltip"><span class="tooltip-kicker">Paso 06</span><strong>Entrevista consular</strong><p>La entrevista es presencial. Respondé claro, llevá documentación y evitá ingresar con objetos no permitidos.</p><a href="https://ar.usembassy.gov/es/visas-es/" target="_blank" rel="noopener">Embajada EE.UU.</a></div>
+                </div>
+      
+                    <div class="arrow">→</div>
+            
+                    <div class="nyc">
+
+                        <img
+                            id="statue"
+                            src="estatua.jpg"
+                            width="120">
+                    
+                        <span>Todo listo</span>
+                    
+                    </div>
+            
+                </div>
+            
+            
+            
+            </div>
+
+            <div class="visa-time-chart real-data-chart" aria-label="Tiempos reales de espera para entrevista B1/B2 según U.S. Department of State">
+                <div class="visa-time-header">
+                    <span>Datos oficiales</span>
+                    <h3>Espera para la próxima cita B1/B2</h3>
+                </div>
+
+                <div class="real-data-layout">
+                    <div class="real-data-plot">
+                        <div class="real-data-axis" aria-hidden="true">
+                            <span>0</span>
+                            <span>3 meses</span>
+                            <span>6 meses</span>
+                            <span>9 meses</span>
+                        </div>
+
+                        <div class="real-data-bars">
+                            <div class="real-data-row buenos" style="--bar:5%; --delay:.05s" tabindex="0">
+                                <div class="real-city">Buenos Aires</div>
+                                <div class="real-track"><span></span></div>
+                                <div class="real-value">&lt; 0.5 mes</div>
+                                <div class="real-bar-tooltip"><span class="tooltip-kicker">Buenos Aires</span><strong>Menos de 15 días</strong><p>Para aplicar desde Argentina, Buenos Aires aparece como la opción más inmediata: el turno disponible figura en menos de medio mes.</p><a href="https://travel.state.gov/content/travel/en/us-visas/visa-information-resources/global-visa-wait-times.html" target="_blank" rel="noopener">Fuente oficial</a></div>
+                            </div>
+
+                            <div class="real-data-row" style="--bar:5%; --delay:.12s" tabindex="0">
+                                <div class="real-city">Rio de Janeiro</div>
+                                <div class="real-track"><span></span></div>
+                                <div class="real-value">&lt; 0.5 mes</div>
+                                <div class="real-bar-tooltip"><span class="tooltip-kicker">Rio de Janeiro</span><strong>Menos de 15 días</strong><p>Otra sede regional con disponibilidad muy rápida según la tabla oficial.</p><a href="https://travel.state.gov/content/travel/en/us-visas/visa-information-resources/global-visa-wait-times.html" target="_blank" rel="noopener">Fuente oficial</a></div>
+                            </div>
+
+                            <div class="real-data-row" style="--bar:11%; --delay:.19s" tabindex="0">
+                                <div class="real-city">Montevideo</div>
+                                <div class="real-track"><span></span></div>
+                                <div class="real-value">1 mes</div>
+                                <div class="real-bar-tooltip"><span class="tooltip-kicker">Montevideo</span><strong>1 mes</strong><p>La espera sube, pero todavía entra dentro de una planificación relativamente corta.</p><a href="https://travel.state.gov/content/travel/en/us-visas/visa-information-resources/global-visa-wait-times.html" target="_blank" rel="noopener">Fuente oficial</a></div>
+                            </div>
+
+                            <div class="real-data-row" style="--bar:11%; --delay:.26s" tabindex="0">
+                                <div class="real-city">Sao Paulo</div>
+                                <div class="real-track"><span></span></div>
+                                <div class="real-value">1 mes</div>
+                                <div class="real-bar-tooltip"><span class="tooltip-kicker">Sao Paulo</span><strong>1 mes</strong><p>Mismo orden que Montevideo: el turno no parece ser el principal cuello de botella.</p><a href="https://travel.state.gov/content/travel/en/us-visas/visa-information-resources/global-visa-wait-times.html" target="_blank" rel="noopener">Fuente oficial</a></div>
+                            </div>
+
+                            <div class="real-data-row" style="--bar:22%; --delay:.33s" tabindex="0">
+                                <div class="real-city">Porto Alegre</div>
+                                <div class="real-track"><span></span></div>
+                                <div class="real-value">2 meses</div>
+                                <div class="real-bar-tooltip"><span class="tooltip-kicker">Porto Alegre</span><strong>2 meses</strong><p>Ya requiere más margen: ideal revisar fechas antes de comprar pasajes.</p><a href="https://travel.state.gov/content/travel/en/us-visas/visa-information-resources/global-visa-wait-times.html" target="_blank" rel="noopener">Fuente oficial</a></div>
+                            </div>
+
+                            <div class="real-data-row" style="--bar:44%; --delay:.4s" tabindex="0">
+                                <div class="real-city">Santiago</div>
+                                <div class="real-track"><span></span></div>
+                                <div class="real-value">4 meses</div>
+                                <div class="real-bar-tooltip"><span class="tooltip-kicker">Santiago</span><strong>4 meses</strong><p>La entrevista puede condicionar la fecha del viaje: conviene adelantar este trámite.</p><a href="https://travel.state.gov/content/travel/en/us-visas/visa-information-resources/global-visa-wait-times.html" target="_blank" rel="noopener">Fuente oficial</a></div>
+                            </div>
+
+                            <div class="real-data-row high" style="--bar:100%; --delay:.47s" tabindex="0">
+                                <div class="real-city">Lima</div>
+                                <div class="real-track"><span></span></div>
+                                <div class="real-value">9 meses</div>
+                                <div class="real-bar-tooltip"><span class="tooltip-kicker">Lima</span><strong>9 meses</strong><p>Es el caso más largo de esta comparación: muestra por qué la sede elegida cambia mucho la planificación.</p><a href="https://travel.state.gov/content/travel/en/us-visas/visa-information-resources/global-visa-wait-times.html" target="_blank" rel="noopener">Fuente oficial</a></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <aside class="real-data-explainer">
+                        <span>Lectura rápida</span>
+                        <strong>El turno también es parte del viaje.</strong>
+                        <p>La visa no depende solo de completar formularios: la disponibilidad de entrevista cambia según la sede. Por eso conviene revisar el calendario antes de cerrar vuelos y alojamiento.</p>
+                    </aside>
+                </div>
+
+                <div class="visa-data-source">
+                    <strong>Fuente</strong>
+                    <span>U.S. Department of State, Global Visa Wait Times. Última actualización: 18-MAY-2026. Métrica: próxima cita disponible para visa de visitante B1/B2.</span>
+                    <a href="https://travel.state.gov/content/travel/en/us-visas/visa-information-resources/global-visa-wait-times.html" target="_blank" rel="noopener">Ver fuente oficial</a>
+                </div>
+            </div>
+             
+
+    </div>
+
+    <div class="chapter-return">
+        <span>Fin del capítulo</span>
+        <a href="#antes-viajar">Volver a Antes de viajar</a>
+    </div>
+
+</section>
+
+
+<!-- TRANSICION A CLIMA -->
+<section class="weather-transition" id="weather-transition" aria-label="Transición hacia el clima de Nueva York">
+    <div class="weather-sticky">
+        <div class="weather-cloud" aria-hidden="true">
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+        <div class="weather-words" aria-hidden="true">
+            <span class="weather-word frio">FRIO</span>
+            <span class="weather-word flor">FLOR</span>
+            <span class="weather-word calor">CALOR</span>
+            <span class="weather-word hojas">HOJAS</span>
+        </div>
+        <div class="weather-title">
+            <span>CAMBIO DE TEMPORADA</span>
+            <h2>El clima cambia el viaje</h2>
+        </div>
+    </div>
+</section>
+
+
+<!-- CLIMA -->
+
+<section class="preview climate-section" id="clima">
+
+
+    <div class="section-label climate-label">
+        CLIMA
+    </div>
+
+    <h2>
+        ¿Cuál es la mejor época para viajar?
+    </h2>
+
+    <p>
+        Nueva York tiene estaciones muy marcadas. El clima cambia por completo la forma de recorrer la ciudad: parques en primavera, calor intenso en verano, hojas en otoño y frío real en invierno.
+    </p>
+
+    <div class="climate-scrolly">
+        <div class="climate-chart-sticky">
+            <div class="climate-chart-card">
+                <div class="climate-kicker">Temperatura promedio mensual</div>
+                <h3>El clima de Nueva York</h3>
+                <p id="climateSubtitle">Deslizá para descubrir los mejores meses para viajar.</p>
+                <div class="climate-chart-wrap">
+                    <canvas id="climateChart"></canvas>
+                    <div class="climate-photo-stage" aria-hidden="true">
+                        <img class="climate-chart-photo active" data-season="general" src="clima/luca-bravo-TaCk3NspYe0-unsplash (1).jpg" alt="">
+                        <img class="climate-chart-photo" data-season="invierno" src="clima/caitlyn-wilson-af8vmZPyFq8-unsplash.jpg" alt="">
+                        <img class="climate-chart-photo" data-season="primavera" src="clima/Spring in New Yourk (1).jpeg" alt="">
+                        <img class="climate-chart-photo" data-season="verano" src="clima/Washington Square Park.jpeg" alt="">
+                        <img class="climate-chart-photo" data-season="otono" src="clima/Fall Scenery.jpeg" alt="">
+                        <img class="climate-chart-photo" data-season="final" src="clima/NYC.jpg" alt="">
+                    </div>
+                </div>
+                <div class="climate-tags">
+                    <span class="climate-tag cold">Invierno frío</span>
+                    <span class="climate-tag good">Ideal: abr · may · sep · oct</span>
+                    <span class="climate-tag hot">Verano húmedo</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="climate-steps">
+            <article class="climate-step active" data-season="general">
+                <div class="climate-card-float">
+                <img class="climate-photo" src="clima/luca-bravo-TaCk3NspYe0-unsplash (1).jpg" alt="Skyline de Nueva York">
+                <div class="climate-step-body">
+                    <span class="climate-step-label">Guía por temporada</span>
+                    <h3>Una ciudad, cuatro climas</h3>
+                    <p>Nueva York cambia radicalmente durante el año: de inviernos bajo cero a veranos húmedos y calurosos.</p>
+                </div>
+            </div>
+            </article>
+
+            <article class="climate-step" data-season="invierno">
+                <div class="climate-card-float">
+                <img class="climate-photo" src="clima/caitlyn-wilson-af8vmZPyFq8-unsplash.jpg" alt="Nueva York en invierno">
+                <div class="climate-step-body">
+                    <span class="climate-step-label">Diciembre · Enero · Febrero</span>
+                    <h3>Invierno</h3>
+                    <p>Enero y febrero son los meses más fríos. Puede nevar, hay menos turistas y suelen aparecer mejores precios.</p>
+                </div>
+            </div>
+            </article>
+
+            <article class="climate-step" data-season="primavera">
+                <div class="climate-card-float">
+                <img class="climate-photo" src="clima/Spring in New Yourk (1).jpeg" alt="Primavera en Nueva York">
+                <div class="climate-step-body">
+                    <span class="climate-step-label">Marzo · Abril · Mayo</span>
+                    <h3>Primavera</h3>
+                    <p>Abril y mayo son meses muy recomendables: clima templado, parques activos y días cómodos para caminar.</p>
+                </div>
+            </div>
+            </article>
+
+            <article class="climate-step" data-season="verano">
+                <div class="climate-card-float">
+                <img class="climate-photo" src="clima/Washington Square Park.jpeg" alt="Nueva York en verano">
+                <div class="climate-step-body">
+                    <span class="climate-step-label">Junio · Julio · Agosto</span>
+                    <h3>Verano</h3>
+                    <p>Julio y agosto son calurosos y húmedos. Hay mucha vida al aire libre, pero también más turismo y cansancio por calor.</p>
+                </div>
+            </div>
+            </article>
+
+            <article class="climate-step" data-season="otono">
+                <div class="climate-card-float">
+                <img class="climate-photo" src="clima/Fall Scenery.jpeg" alt="Otoño en Nueva York">
+                <div class="climate-step-body">
+                    <span class="climate-step-label">Septiembre · Octubre · Noviembre</span>
+                    <h3>Otoño</h3>
+                    <p>Septiembre y octubre combinan temperaturas agradables, colores de temporada y una ciudad más cómoda para recorrer.</p>
+                </div>
+            </div>
+            </article>
+
+            <article class="climate-step" data-season="final">
+                <div class="climate-card-float">
+                <img class="climate-photo" src="clima/NYC.jpg" alt="Calles de Nueva York">
+                <div class="climate-step-body">
+                    <span class="climate-step-label">Mejor equilibrio</span>
+                    <h3>Los mejores meses</h3>
+                    <p>Abril, mayo, septiembre y octubre concentran el mejor balance entre temperatura, caminatas largas y experiencia urbana.</p>
+                </div>
+            </div>
+            </article>
+        </div>
+    </div>
+
+    <div class="chapter-return">
+        <span>Fin del capítulo</span>
+        <a href="#antes-viajar">Volver a Antes de viajar</a>
+    </div>
+
+</section>
+
+
+<!-- TRANSICION A ALOJAMIENTO -->
+<section class="stay-transition" id="stay-transition" aria-label="Transición hacia alojamiento">
+    <div class="stay-sticky">
+        <div class="stay-copy">
+            <span>DONDE DORMIR</span>
+            <h2>Alojamiento</h2>
+            <p>La ciudad ya empezó. Ahora toca elegir desde qué barrio vas a salir a recorrerla cada día.</p>
+        </div>
+
+        <div class="suitcase-scene" aria-hidden="true">
+            <div class="packing-lines">
+                <i></i><i></i><i></i>
+            </div>
+            <div class="clothing clothing-shirt">NYC</div>
+            <div class="clothing clothing-scarf"></div>
+            <div class="clothing clothing-pants"></div>
+            <div class="clothing clothing-tag">5 DAYS</div>
+            <div class="suitcase-lid">
+                <span class="suitcase-handle"></span>
+                <span class="suitcase-sticker">JFK</span>
+            </div>
+            <div class="suitcase-body">
+                <span class="suitcase-lock"></span>
+                <span class="suitcase-label">NYC</span>
+                <span class="suitcase-stripe stripe-a"></span>
+                <span class="suitcase-stripe stripe-b"></span>
+            </div>
+        </div>
+
+        <div class="stay-floor" aria-hidden="true"></div>
+    </div>
+</section>
+
+<!-- ALOJAMIENTO -->
+
+<section class="preview" id="alojamiento">
+
+
+    <h2>
+        Elegir base en Nueva York
+    </h2>
+
+    <p>
+        En una ciudad que se recorre por líneas, distancias y barrios, alojarse no es solo elegir una cama: es decidir desde dónde empieza cada día del viaje.
+    </p>
+
+
+    <div class="boroughs-embed-wrap">
+        <iframe
+            src="boroughs_intro.html?v=no-fade-clean-20260623"
+            title="Introduccion interactiva a los boroughs de Nueva York"
+            loading="eager">
+        </iframe>
+    </div>
+
+    <div class="airbnb-embed-wrap">
+        <iframe
+            src="airbnb_viz.html"
+            title="Visualizacion interactiva de precios de Airbnb por barrio en Nueva York"
+            loading="lazy"
+            scrolling="no">
+        </iframe>
+    </div>
+
+    <div class="chapter-return">
+        <span>Fin del capítulo</span>
+        <a href="#antes-viajar">Volver a Antes de viajar</a>
+    </div>
+
+</section>
+
+
+<!-- TRANSICION A LLEGADA -->
+
+<section class="liberty-transition" id="liberty-transition" aria-label="Transición hacia la llegada a Nueva York">
+    <div class="liberty-sticky">
+        <div class="liberty-copy">
+            <span>Del alojamiento al arribo</span>
+            <h2>Ya llegaste</h2>
+        </div>
+        <div class="liberty-photo" aria-hidden="true">
+            <img src="estatua-cutout.png" alt="">
+        </div>
+    </div>
+</section>
+
+
+<!-- TRANSPORTE -->
+
+<section class="transport-section" id="transporte">
+
+    <div class="subway-scene transport-opening" aria-hidden="true">
+        <div class="subway-line"></div>
+        <div class="subway-stations">
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+        <div class="subway-train real-subway">
+            <div class="subway-roof"></div>
+            <div class="subway-car-panel panel-blank"></div>
+            <div class="subway-door-pair">
+                <span></span>
+                <span></span>
+            </div>
+            <div class="subway-window destination-window">
+                <span>L</span>
+                <em>WORLD TRADE CTR</em>
+            </div>
+            <div class="subway-door-pair narrow">
+                <span></span>
+                <span></span>
+            </div>
+            <div class="subway-window small-window"></div>
+            <div class="subway-front">
+                <div class="front-route">A</div>
+                <div class="front-window"></div>
+                <div class="front-red-panel"></div>
+                <div class="front-center-door"></div>
+                <div class="front-lights">
+                    <span></span>
+                    <span></span>
+                </div>
+                <div class="front-coupler"></div>
+            </div>
+            <div class="subway-bottom"></div>
+        </div>
+    </div>
+
+    <div class="transport-heading-block">
+        <div class="section-label">
+            TRANSPORTE
+        </div>
+
+        <h2 class="transport-title">
+            Moverse por la ciudad
+        </h2>
+
+        <p class="transport-text">
+            El subte conecta gran parte de Nueva York y permite leer la ciudad por líneas,
+            estaciones y distancias. Acá va a ir el gráfico con el mapa y las estaciones.
+        </p>
+    </div>
+
+    <div class="transport-graphic-slot transport-map-embed">
+        <iframe
+            src="Subtes/nyc_scrollytelling.html"
+            title="Mapa interactivo de subte y atracciones de Nueva York"
+            loading="lazy">
+        </iframe>
+    </div>
+
+</section>
+
+<!-- COMIDA -->
+
+<section class="food-chapter" id="comida">
+  <section class="food-separator" id="foodIntro">
+    <div class="food-kubrick-stage">
+      <div class="food-kubrick-label">Capitulo gastronomico</div>
+
+      <div class="food-k-word breakfast">BREAKFAST</div>
+      <div class="food-k-word lunch">LUNCH</div>
+      <div class="food-k-word dinner">DINNER</div>
+      <div class="food-k-word eat">EAT</div>
+
+      <div class="food-k-title">
+        <div class="small">Donde comer</div>
+        <h2>Donde comer<em>en Nueva York</em></h2>
+        <p>La ciudad tambien se recorre por sus restaurantes: del deli clasico al street food, de la pizza al plato que se vuelve recuerdo.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="food-stats-track" id="foodStatsTrack">
+    <div class="food-stats-sticky">
+      <div class="food-stats-stage">
+        <div class="food-stat-num" id="food-stat-num">27K+</div>
+        <div class="food-stat-desc" id="food-stat-desc">restaurantes registrados<br>en Nueva York</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="food-chart-section" aria-label="Grafico de restaurantes en Nueva York">
+    <div class="food-controls">
+      <span class="food-control-label">Color por</span>
+      <button class="food-filter-btn active" data-food-color="barrio">Barrio</button>
+      <button class="food-filter-btn" data-food-color="tipo">Tipo de cocina</button>
+      <button class="food-filter-btn" data-food-color="precio">Precio</button>
+      <div class="food-ctrl-sep"></div>
+      <span class="food-control-label">Filtrar</span>
+      <button class="food-sort-btn active" data-food-filter="all">Todos <span class="food-count-badge" id="food-cb-all">25</span></button>
+      <button class="food-sort-btn" data-food-filter="manhattan">Manhattan</button>
+      <button class="food-sort-btn" data-food-filter="brooklyn">Brooklyn</button>
+      <button class="food-sort-btn" data-food-filter="midtown">Midtown</button>
+      <button class="food-sort-btn" data-food-filter="queens">Queens</button>
+    </div>
+
+    <div class="food-viz-stack" aria-hidden="false">
+      <div class="food-legend" id="foodLegRow"></div>
+
+      <div class="food-search-wrap">
+        <span class="food-search-icon-wrap">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(21,21,19,.3)" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        </span>
+        <input class="food-search-input" id="foodSearchBox" placeholder="Buscar restaurante..." autocomplete="off"/>
+      </div>
+
+      <div class="food-chart-wrap"><svg id="foodBsvg"></svg></div>
+    </div>
+
+    <div class="food-scroll-filter" id="foodScrollFilter" aria-label="Filtros de restaurantes por scroll">
+      <article class="food-scroll-step active" data-food-scroll-color="barrio" data-food-scroll-filter="all">
+        <span>Vista general</span>
+        <strong>Todos los restaurantes</strong>
+        <p>Primero aparece la ciudad completa: una constelación de lugares para comer, coloreada por zona.</p>
+      </article>
+      <article class="food-scroll-step" data-food-scroll-color="barrio" data-food-scroll-filter="manhattan">
+        <span>Manhattan</span>
+        <strong>El centro de la escena</strong>
+        <p>Deli, pizza, steakhouses y clásicos turísticos se concentran en el recorrido más caminable.</p>
+      </article>
+      <article class="food-scroll-step" data-food-scroll-color="barrio" data-food-scroll-filter="brooklyn">
+        <span>Brooklyn</span>
+        <strong>Paradas con más identidad local</strong>
+        <p>La selección se desplaza hacia pizzerías, bagels y restaurantes que funcionan como destino propio.</p>
+      </article>
+      <article class="food-scroll-step" data-food-scroll-color="tipo" data-food-scroll-filter="all">
+        <span>Tipo de cocina</span>
+        <strong>Elegir por antojo</strong>
+        <p>El color deja de hablar de barrio y empieza a ordenar la ciudad por estilos de comida.</p>
+      </article>
+      <article class="food-scroll-step" data-food-scroll-color="precio" data-food-scroll-filter="all">
+        <span>Precio</span>
+        <strong>Del slice al omakase</strong>
+        <p>La última lectura separa opciones rápidas, comidas medias y experiencias más caras.</p>
+      </article>
+    </div>
+
+    <div id="foodTooltip" class="food-tooltip">
+      <div class="food-tt-head">
+        <div class="food-tt-name" id="food-tt-name"></div>
+        <div class="food-tt-tipo" id="food-tt-tipo"></div>
+      </div>
+      <div class="food-tt-grid">
+        <span class="food-tt-lbl">Barrio</span><span class="food-tt-val" id="food-tt-barrio"></span>
+        <span class="food-tt-lbl">Precio</span><span class="food-tt-val" id="food-tt-precio"></span>
+        <span class="food-tt-lbl">Rating</span><span class="food-tt-val" id="food-tt-google"></span>
+      </div>
+      <div id="food-tt-popbar" class="food-pop-bar"></div>
+      <div id="food-tt-plato-wrap" class="food-tt-plato-wrap">
+        <div class="food-tt-plato-lbl">Plato iconico</div>
+        <div class="food-tt-plato" id="food-tt-plato"></div>
+      </div>
+    </div>
+
+    <div class="food-footer">
+      <span>Datos curados · Solo fines informativos</span>
+      <span>NYC · <span id="foodYr"></span></span>
+    </div>
+  </section>
+</section>
+
+
+
+<!-- BROADWAY -->
+<section class="broadway-embed-section" id="broadway">
+    <iframe
+        src="broadway_story.html?v=clean-ending-20260623"
+        title="Broadway Story"
+        loading="lazy">
+    </iframe>
+</section>
+
+<section class="broadway-poster-bridge">
+    <span>DEL DATO A LA CARTELERA</span>
+    <h2>Hamilton cambió la medida del éxito</h2>
+    <p>El último gráfico muestra que la influencia de una obra no depende solamente de cuánto tiempo permanece en cartel. Hamilton lo demuestra: sus 11 premios Tony y su impacto cultural lo ubicaron entre los grandes fenómenos de Broadway sin necesitar décadas de historia.</p>
+    <p>Con esa idea en mente, la pregunta cambia. Ya no es solamente qué musical duró más, sino qué experiencia querés llevarte de Nueva York. Estos cinco pósters abren distintas maneras de vivir Broadway hoy.</p>
+</section>
+
+<section class="broadway-posters-embed" id="broadway-posters">
+    <iframe
+        src="broadway_kubrick_posters.html?v=hamilton-parent-audio-20260623"
+        title="Musicales que hicieron historia"
+        loading="eager">
+    </iframe>
+</section>
+
+    <script src="script.js?v=intro-visible-audio-guard-20260623"></script>
+
+</body>
+</html>
